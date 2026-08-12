@@ -1,6 +1,6 @@
 {
-  "version": "8b377ae593c8",
-  "generatedAt": "2026-08-12T11:20:13+00:00",
+  "version": "e77bb3cc1583",
+  "generatedAt": "2026-08-12T11:22:16+00:00",
   "files": [
     {
       "path": "index.html",
@@ -20,8 +20,8 @@
     },
     {
       "path": "sw.js",
-      "sha256": "b86b03f7283971feaf6bc79cff257089534d303e5ce6d7d3c80ab8cd231a7940",
-      "size": 2092
+      "sha256": "bc196eb2adc2dcad3434a19b3a1edeca2b07cee1bd7b1f362ec68c62d567293c",
+      "size": 2525
     },
     {
       "path": "assets/cotton-bg-1.jpg",

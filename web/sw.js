@@ -7,7 +7,8 @@ const CACHE = `iiyama-docs-wall-${VERSION}`;
 
 const PRECACHE = [
   './',
-  'index.html',
+  'index.html', // dev/GitHub Pages name
+  '1.html',     // production name at skuytov.eu/ii/
   'style.css',
   'app.js',
   'assets/cotton-bg-1.jpg',
@@ -26,8 +27,14 @@ const PRECACHE = [
 ];
 
 self.addEventListener('install', (e) => {
+  // Precache per-file, not via addAll(): addAll() rejects the whole install if
+  // any single entry 404s. On production the page is served as 1.html, so
+  // 'index.html' does not exist there and addAll() would leave the browser
+  // path with no offline cache at all. Best-effort each entry instead.
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) => Promise.all(
+      PRECACHE.map((u) => c.add(u).catch(() => {}))
+    )).then(() => self.skipWaiting())
   );
 });
 
