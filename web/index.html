@@ -1,71 +1,42 @@
 <!doctype html>
 <html lang="bg">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=3840, initial-scale=1" />
-<title>Информационно табло</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=3840, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Septona Bulgaria — Информационно табло</title>
+  <link rel="preload" as="image" href="assets/board.jpg" />
+  <link rel="preload" as="image" href="assets/cotton-bg-1.jpg" />
+  <link rel="preload" as="image" href="assets/septona-logo.png" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo-mark">S</div>
-      <div class="brand-text">
-        <div class="brand-title">Информационно табло</div>
-        <div class="brand-sub">Актуални заповеди, програми и телефони</div>
+
+  <!-- ============ DOCS VIEW ============ -->
+  <section class="view view-docs is-active" id="docsView" aria-label="Документи">
+    <img class="board-img" src="assets/board.jpg" alt="Информационно табло — актуални заповеди, програми и телефони" />
+    <!-- Sub-pixel drift wrapper handles pixel-level anti-burn-in shift -->
+  </section>
+
+  <!-- ============ SPLASH VIEW (burn-in relief) ============ -->
+  <section class="view view-splash" id="splashView" aria-hidden="true">
+    <div class="stage">
+      <div class="bg-slide bg-slide-1 is-active" id="bgSlide1"></div>
+      <div class="bg-slide bg-slide-2"          id="bgSlide2"></div>
+      <div class="bg-vignette"></div>
+
+      <div class="particles" id="particles"></div>
+
+      <div class="live-clock">
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-date" id="clockDate"></div>
+      </div>
+
+      <div class="logo-center">
+        <img class="logo-img" src="assets/septona-logo.png" alt="Septona Bulgaria" />
       </div>
     </div>
-    <div class="clock" id="clock">--:--</div>
-    <div class="date" id="date">—</div>
-  </header>
-
-  <main class="board" id="board">
-    <!-- Row 1: 2 landscape docs -->
-    <div class="tile land" data-src="Programa-obucheniia-5-1.png" data-title="Програма за обучения 2026">
-      <div class="tile-label">Програма за обучения</div>
-    </div>
-    <div class="tile land" data-src="Programa-pochistvane-6-1.png" data-title="Програма за почистване 2026">
-      <div class="tile-label">Програма за почистване</div>
-    </div>
-
-    <!-- Row 2: 4 portrait docs -->
-    <div class="tile port" data-src="KUT-pozharna-bezopasnost-2026-3-1.png" data-title="КУТ – Пожарна безопасност 2026">
-      <div class="tile-label">Пожарна безопасност</div>
-    </div>
-    <div class="tile port" data-src="Programa-vtreshni-insp.-4-1.png" data-title="Програма за вътрешни инспекции">
-      <div class="tile-label">Вътрешни инспекции</div>
-    </div>
-    <div class="tile port" data-src="Sluzh.-telefoni-2026-7-1.png" data-title="Служебни телефони 2026">
-      <div class="tile-label">Служебни телефони</div>
-    </div>
-    <div class="tile port" data-src="Tel.-speshni-situatsii-8-1.png" data-title="Телефони за спешни ситуации">
-      <div class="tile-label">Спешни ситуации</div>
-    </div>
-
-    <!-- Row 3: 5 portrait docs -->
-    <div class="tile port" data-src="Zapoved-16-nesmesvane-na-otpadtsi_0001-2-1.png" data-title="Заповед 16 – несмесване на отпадъци">
-      <div class="tile-label">Несмесване на отпадъци</div>
-    </div>
-    <div class="tile port" data-src="Shofori_zapoved-17-02.10.2023_BG-9-1.png" data-title="Заповед 17 – шофьори (BG) стр.1">
-      <div class="tile-label">Заповед шофьори BG · 1</div>
-    </div>
-    <div class="tile port" data-src="Shofori_zapoved-17-02.10.2023_BG-9-2.png" data-title="Заповед 17 – шофьори (BG) стр.2">
-      <div class="tile-label">Заповед шофьори BG · 2</div>
-    </div>
-    <div class="tile port" data-src="Shofori_zapoved-17-02.10.2023_EN-1.png" data-title="Order 17 – drivers (EN) p.1">
-      <div class="tile-label">Drivers order EN · 1</div>
-    </div>
-    <div class="tile port" data-src="Shofori_zapoved-17-02.10.2023_EN-2.png" data-title="Order 17 – drivers (EN) p.2">
-      <div class="tile-label">Drivers order EN · 2</div>
-    </div>
-  </main>
-
-  <!-- Fullscreen zoom overlay -->
-  <div class="overlay" id="overlay" hidden>
-    <div class="overlay-title" id="overlayTitle"></div>
-    <img id="overlayImg" alt="" />
-    <div class="overlay-hint">Натиснете, за да затворите</div>
-  </div>
+  </section>
 
   <script src="app.js"></script>
 </body>
