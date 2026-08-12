@@ -5,7 +5,7 @@ A self-healing WebView kiosk for the **iiyama LH6560UHS-B2AG** signage panel.
 ## What makes it robust
 
 ### 1 · Offline-first — never shows a blank screen
-- The entire web app (HTML/CSS/JS + `board.jpg` + splash assets) is **bundled inside the APK** under `app/src/main/assets/web/`.
+- The entire web app (HTML/CSS/JS + bundled woff2 fonts + splash assets) is **bundled inside the APK** under `app/src/main/assets/web/`.
 - On first boot, `App.onCreate()` copies the snapshot into `filesDir/web/`.
 - The WebView **always loads `file://…/web/index.html`** — never a remote URL.
 - ⇒ The panel works with zero internet, forever.
@@ -81,7 +81,7 @@ Upload these files to `https://skuytov.eu/ii/`:
 | `style.css`             | `style.css`               |
 | `app.js`                | `app.js`                  |
 | `sw.js`                 | `sw.js`                   |
-| `assets/board.jpg`      | `assets/board.jpg`        |
+| `assets/fonts/*.woff2`  | `assets/fonts/*.woff2`    |
 | `assets/cotton-bg-1.jpg`| `assets/cotton-bg-1.jpg`  |
 | `assets/cotton-bg-2.jpg`| `assets/cotton-bg-2.jpg`  |
 | `assets/septona-logo.png`| `assets/septona-logo.png`|

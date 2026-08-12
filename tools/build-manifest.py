@@ -33,10 +33,20 @@ TRACKED = [
     ("style.css",               "style.css"),
     ("app.js",                  "app.js"),
     ("sw.js",                   "sw.js"),
-    ("assets/board.jpg",        "assets/board.jpg"),
     ("assets/cotton-bg-1.jpg",  "assets/cotton-bg-1.jpg"),
     ("assets/cotton-bg-2.jpg",  "assets/cotton-bg-2.jpg"),
     ("assets/septona-logo.png", "assets/septona-logo.png"),
+    # Bundled webfonts. The docs view is now live HTML text rather than a
+    # rasterised image, so these must ship or the panel falls back to a
+    # system face and the carefully fitted layout reflows.
+    ("assets/fonts/golos-cyrillic.woff2",     "assets/fonts/golos-cyrillic.woff2"),
+    ("assets/fonts/golos-cyrillic-ext.woff2", "assets/fonts/golos-cyrillic-ext.woff2"),
+    ("assets/fonts/golos-latin.woff2",        "assets/fonts/golos-latin.woff2"),
+    ("assets/fonts/golos-latin-ext.woff2",    "assets/fonts/golos-latin-ext.woff2"),
+    ("assets/fonts/inter-cyrillic.woff2",     "assets/fonts/inter-cyrillic.woff2"),
+    ("assets/fonts/inter-cyrillic-ext.woff2", "assets/fonts/inter-cyrillic-ext.woff2"),
+    ("assets/fonts/inter-latin.woff2",        "assets/fonts/inter-latin.woff2"),
+    ("assets/fonts/inter-latin-ext.woff2",    "assets/fonts/inter-latin-ext.woff2"),
 ]
 
 def sha256(path: Path) -> str:

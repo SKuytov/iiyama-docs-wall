@@ -1,192 +1,541 @@
-/* =========================================================
-   iiyama LH6560UHS-B2AG · 3840 × 2160 signage
-   - Docs view: full-screen master board image
-   - Splash view: crossfading Septona cotton bg + particles + logo + clock
-   - Views crossfade every 15 min (docs) / 30 s (splash)
-   ========================================================= */
+/* ============================================================
+   iiyama-docs-wall — Septona information board
+   Target panel: iiyama LH6560UHS-B2AG, 65" 3840x2160 landscape, no touch.
 
-:root {
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --splash-bg: #07102e;
+   SCALING MODEL
+   -------------
+   The whole board is authored against a 3840px-wide canvas, but nothing is
+   sized in absolute px. `html { font-size }` is derived from the viewport
+   width so that 1rem === 10px when the viewport is 3840 CSS px wide.
+   Every dimension below is in rem, so the layout reflows *proportionally*
+   to whatever the panel actually reports (1920@2x, 3840@1x, 1280@3x ...).
+
+   This is deliberately NOT a `transform: scale()` approach: a scaled layer
+   can be rasterised once and then stretched by the compositor, which is
+   exactly the softness we are trying to eliminate. Reflowing instead means
+   glyphs are always rasterised at their true final size, so text lands on
+   the panel's real pixel grid and stays sharp.
+   ============================================================ */
+
+/* ---------- Fonts (bundled, offline) ----------
+   Golos Text: Cyrillic-native display face (Paratype) — correct Bulgarian
+   letterforms. Inter: body/data, excellent at small optical sizes.        */
+@font-face {
+  font-family: 'Golos';
+  src: url('assets/fonts/golos-cyrillic.woff2') format('woff2');
+  font-weight: 400 900; font-style: normal; font-display: block;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Golos';
+  src: url('assets/fonts/golos-cyrillic-ext.woff2') format('woff2');
+  font-weight: 400 900; font-style: normal; font-display: block;
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Golos';
+  src: url('assets/fonts/golos-latin.woff2') format('woff2');
+  font-weight: 400 900; font-style: normal; font-display: block;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Golos';
+  src: url('assets/fonts/golos-latin-ext.woff2') format('woff2');
+  font-weight: 400 900; font-style: normal; font-display: block;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'InterB';
+  src: url('assets/fonts/inter-cyrillic.woff2') format('woff2');
+  font-weight: 400 800; font-style: normal; font-display: block;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'InterB';
+  src: url('assets/fonts/inter-cyrillic-ext.woff2') format('woff2');
+  font-weight: 400 800; font-style: normal; font-display: block;
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'InterB';
+  src: url('assets/fonts/inter-latin.woff2') format('woff2');
+  font-weight: 400 800; font-style: normal; font-display: block;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'InterB';
+  src: url('assets/fonts/inter-latin-ext.woff2') format('woff2');
+  font-weight: 400 800; font-style: normal; font-display: block;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ---------- Palette ----------
+   Derived from the Septona logo: navy #263982, cyan #107cc0, sky #4d92ce.
+   Dark ground is deliberate on a signage panel: less emitted light in a
+   lit hall, lower burn-in energy, and higher perceived contrast for text. */
+:root {
+  --navy-900: #070B18;
+  --navy-850: #0A1024;
+  --navy-800: #0E1530;
+  --navy-750: #131C3D;
+  --navy-700: #18224A;
+  --line:     #26325F;
+  --line-soft:#1C2749;
 
-/* Lock the document to exactly the visible viewport. `position: fixed` + inset:0
-   removes any chance of scroll/overflow shifting the content off-screen, which is
-   what produced the "zoomed into the top-left corner" symptom on the panel. */
+  --ink:      #F2F5FD;
+  --ink-dim:  #B9C4E2;
+  --ink-mute: #8592B8;
+
+  --brand:    #4FA8E8;
+  --brand-dp: #263982;
+  --sky:      #7FC0F0;
+
+  --danger:   #FF5C6B;
+  --danger-dk:#3A1220;
+  --ok:       #46C98B;
+  --ok-dk:    #0C2B20;
+  --warn:     #FFC155;
+
+  --radius:   1.6rem;
+  --gap:      2.2rem;
+}
+
+/* ---------- Reset & scaling root ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  /* 1rem = 10px at a 3840px-wide viewport. app.js overrides this with a
+     clientWidth-based value, which excludes scrollbars and is exact. */
+  font-size: calc(100vw / 384);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html, body {
   position: fixed;
   inset: 0;
-  width: 100%; height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  background: #000;
-  font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+  background: var(--navy-900);
+  color: var(--ink);
+  font-family: 'InterB', 'Golos', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  color: #fff;
-  user-select: none;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'locl' 1, 'kern' 1, 'liga' 1;
+  overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none;
+  cursor: none;
 }
 
-/* ---------- View system: two full-screen layers, crossfaded ---------- */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* every <use> icon inherits these */
+svg use, svg symbol { }
+svg[class] {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---------- View switching ---------- */
 .view {
-  position: fixed;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 1.6s ease-in-out;
-  z-index: 1;
+  position: absolute; inset: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity 900ms ease;
 }
-.view.is-active {
-  opacity: 1;
-  z-index: 2;
+.view.is-active { opacity: 1; visibility: visible; }
+
+/* ============================================================
+   DOCS VIEW — the board
+   ============================================================ */
+.view-docs { background: var(--navy-900); }
+
+.board {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: var(--gap);
+  padding: 2.4rem 2.8rem 2.2rem;
+  /* Sub-pixel anti-burn-in drift, ±3px over 10 min. */
+  animation: drift 600s ease-in-out infinite;
+  /* Soft brand wash so the dark ground is not flat black. */
+  background:
+    radial-gradient(120rem 70rem at 12% -10%, rgba(38,57,130,.55), transparent 70%),
+    radial-gradient(110rem 60rem at 92% 108%, rgba(16,124,192,.22), transparent 72%),
+    var(--navy-900);
+}
+@keyframes drift {
+  0%,100% { transform: translate(0,0); }
+  25%     { transform: translate(3px,-2px); }
+  50%     { transform: translate(-2px,3px); }
+  75%     { transform: translate(2px,2px); }
 }
 
-/* =========================================================
-   DOCS VIEW
-   ========================================================= */
-.view-docs {
-  background: #ffffff;
+/* ---------- Header ---------- */
+.hdr {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 2.4rem;
+  padding-bottom: 1.6rem;
+  border-bottom: 0.2rem solid var(--line);
+}
+.hdr-logo { height: 7.6rem; width: auto; display: block; }
+.hdr-title h1 {
+  margin: 0;
+  font-family: 'Golos', 'InterB', sans-serif;
+  font-weight: 700;
+  font-size: 4.6rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.hdr-title p {
+  margin: 0.5rem 0 0;
+  font-size: 2.4rem;
+  font-weight: 500;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+}
+.hdr-meta { text-align: right; }
+.hdr-clock {
+  font-size: 5.4rem; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink);
+}
+.hdr-date {
+  margin-top: 0.6rem;
+  font-size: 2.2rem; font-weight: 500; color: var(--ink-mute);
+}
+
+/* ---------- Emergency strip ---------- */
+.emg {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.6rem;
+  align-items: stretch;
+  padding: 2rem 2.4rem;
+  border-radius: var(--radius);
+  background: linear-gradient(100deg, rgba(255,92,107,.16), rgba(255,92,107,.05) 55%, transparent);
+  border: 0.2rem solid rgba(255,92,107,.42);
+}
+.emg-112 { display: flex; align-items: center; gap: 2rem; padding-right: 2.6rem; border-right: 0.2rem solid rgba(255,92,107,.3); }
+.emg-112-ico { width: 6.4rem; height: 6.4rem; color: var(--danger); stroke-width: 1.6; flex: none; }
+.emg-112-num {
+  font-family: 'Golos', sans-serif;
+  font-size: 9.6rem; font-weight: 900; line-height: .92;
+  color: var(--danger); letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums;
+}
+.emg-112-lbl    { font-size: 2.5rem; font-weight: 700; color: var(--ink); margin-top: .4rem; }
+.emg-112-lbl-en { font-size: 2rem;   font-weight: 500; color: var(--ink-mute); }
+
+.emg-grid { display: grid; grid-template-columns: 1fr 1.28fr; gap: 2.6rem; }
+.emg-col-hd {
+  font-size: 1.95rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-mute); margin-bottom: 1rem;
+}
+.emg-col-hd span { font-weight: 500; text-transform: none; letter-spacing: .02em; }
+.emg-row {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.6rem;
+  align-items: baseline; padding: .42rem 0;
+}
+.emg-num {
+  font-size: 3rem; font-weight: 800; color: var(--ink);
+  font-variant-numeric: tabular-nums lining-nums; white-space: nowrap;
+}
+.emg-who { font-size: 2.15rem; font-weight: 600; color: var(--ink-dim); line-height: 1.2; }
+.emg-who em { display: block; font-style: normal; font-size: 1.75rem; font-weight: 400; color: var(--ink-mute); }
+
+/* ---------- Main band ---------- */
+.band {
+  display: grid;
+  grid-template-columns: 1.62fr 1.16fr 0.94fr;
+  gap: var(--gap);
+  min-height: 0;
+}
+
+.card {
+  display: flex; flex-direction: column;
+  min-height: 0;
+  padding: 1.9rem 2.1rem;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--navy-800), var(--navy-850));
+  border: 0.2rem solid var(--line-soft);
+}
+.card-hd {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 1.5rem;
+  padding-bottom: 1.3rem; margin-bottom: 1.5rem;
+  border-bottom: 0.2rem solid var(--line-soft);
+}
+.card-ico { width: 4.4rem; height: 4.4rem; color: var(--brand); flex: none; }
+.card-hd-txt h2 {
+  margin: 0;
+  font-family: 'Golos', sans-serif;
+  font-size: 3.15rem; font-weight: 700; line-height: 1.1; color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.card-hd-txt p {
+  margin: .3rem 0 0;
+  font-size: 2rem; font-weight: 500; color: var(--ink-mute);
+}
+.doc-ref {
+  text-align: right; font-size: 1.9rem; font-weight: 700; color: var(--sky);
+  line-height: 1.15; white-space: nowrap;
+}
+.doc-ref em { display: block; font-style: normal; font-size: 1.65rem; font-weight: 500; color: var(--ink-mute); }
+
+/* ---------- Rules (Order No.17) ---------- */
+.rules {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .95rem 1.7rem;
+  flex: 1 1 auto; min-height: 0;
+  /* Distribute the 18 chips down the full column instead of stacking them at
+     the top and leaving a dead band above the warning banner. */
+  align-content: space-between;
+}
+.rules li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 1.5rem;
+  align-items: center;
+  padding: .88rem 1.15rem;
+  border-radius: 1.1rem;
+  background: rgba(79,168,232,.055);
+  border-left: .38rem solid var(--brand);
+}
+.r-ico {
+  grid-row: 1 / span 2; width: 4.1rem; height: 4.1rem;
+  color: var(--brand); stroke-width: 1.75; flex: none;
+}
+.r-no { color: var(--danger); }
+.rules li:has(.r-no) { background: rgba(255,92,107,.07); border-left-color: var(--danger); }
+.r-bg {
+  font-size: 2.35rem; font-weight: 700; line-height: 1.18; color: var(--ink);
+  align-self: end;
+}
+.r-en {
+  font-size: 1.85rem; font-weight: 400; line-height: 1.2; color: var(--ink-mute);
+  align-self: start; margin-top: .2rem;
+}
+.rules-warn {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.4rem; align-items: center;
+  margin: 1.3rem 0 0; padding: 1.15rem 1.5rem;
+  border-radius: 1.1rem;
+  background: rgba(255,92,107,.13);
+  border: .18rem solid rgba(255,92,107,.4);
+}
+.warn-ico { width: 4rem; height: 4rem; color: var(--danger); flex: none; }
+.rules-warn span { font-size: 2.3rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.rules-warn em { display: block; font-style: normal; font-size: 1.8rem; font-weight: 400; color: var(--ink-dim); }
+
+/* ---------- Directory ---------- */
+.dir {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; align-content: space-between;
+  gap: .78rem;
+}
+.dir-grp h3 {
+  margin: 0 0 .34rem;
+  font-size: 1.92rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--sky);
+}
+.dir-grp h3 span { font-weight: 500; text-transform: none; letter-spacing: .01em; color: var(--ink-mute); }
+.dir-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'name tel' 'role tel';
+  column-gap: 1.4rem;
+  align-items: center;
+  padding: .34rem 0;
+  border-bottom: .12rem solid rgba(38,50,95,.55);
+}
+.dir-grp .dir-row:last-child { border-bottom: 0; }
+.dir-row b {
+  grid-area: name;
+  font-size: 2.12rem; font-weight: 700; color: var(--ink); line-height: 1.14;
+}
+.dir-row i {
+  grid-area: role; font-style: normal;
+  font-size: 1.72rem; font-weight: 400; color: var(--ink-mute); line-height: 1.14;
+}
+.dir-row span {
+  grid-area: tel;
+  font-size: 2.3rem; font-weight: 800; color: var(--brand);
+  font-variant-numeric: tabular-nums lining-nums; white-space: nowrap;
+}
+
+/* ---------- Right stack ---------- */
+.stack { display: grid; grid-template-rows: auto auto 1fr; gap: var(--gap); min-height: 0; }
+
+/* waste */
+.wst-block { padding: 1.15rem 1.4rem; border-radius: 1.1rem; margin-bottom: 1.1rem; }
+.wst-ban { background: rgba(255,92,107,.1);  border-left: .38rem solid var(--danger); }
+.wst-req { background: rgba(70,201,139,.1);  border-left: .38rem solid var(--ok); margin-bottom: .9rem; }
+.wst-lbl {
+  font-size: 1.9rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  margin-bottom: .6rem;
+}
+.wst-ban .wst-lbl { color: var(--danger); }
+.wst-req .wst-lbl { color: var(--ok); }
+.wst-lbl span { font-weight: 500; text-transform: none; letter-spacing: .01em; color: var(--ink-mute); }
+.wst-block ul { list-style: none; margin: 0; padding: 0; }
+.wst-block li {
+  font-size: 2.05rem; font-weight: 600; color: var(--ink); line-height: 1.2;
+  padding: .38rem 0;
+}
+.wst-block li em {
+  display: block; font-style: normal;
+  font-size: 1.68rem; font-weight: 400; color: var(--ink-mute); line-height: 1.18;
+}
+.wst-legal { margin: 0; font-size: 1.72rem; font-weight: 500; color: var(--ink-mute); }
+
+/* committee */
+.kut { display: grid; gap: 1.1rem; }
+.kut-side h3 {
+  margin: 0 0 .4rem;
+  font-size: 1.88rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--sky);
+}
+.kut-side h3 span { font-weight: 500; text-transform: none; letter-spacing: .01em; color: var(--ink-mute); }
+.kut-side p {
+  margin: 0; padding: .3rem 0;
+  font-size: 2.02rem; font-weight: 700; color: var(--ink); line-height: 1.16;
+}
+.kut-side p i {
+  font-style: normal; font-weight: 400; font-size: 1.72rem; color: var(--ink-mute);
   display: block;
 }
-
-.board-img {
-  display: block;
-  /* 100% of the fixed .view-docs layer — never viewport units, so it cannot
-     overflow if the WebView reports an odd viewport size. */
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  /* Sub-pixel drift to shift the entire image ±3 px over 10 minutes.
-     Prevents static pixels from developing burn-in without being noticeable. */
-  animation: pixel-drift 600s ease-in-out infinite;
-  will-change: transform;
+.kut-fire {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: center;
+  margin: 1.2rem 0 0; padding: 1.05rem 1.3rem;
+  border-radius: 1.1rem;
+  background: rgba(255,193,85,.1); border: .18rem solid rgba(255,193,85,.34);
 }
+.kut-fire-ico { width: 3.6rem; height: 3.6rem; color: var(--warn); flex: none; }
+.kut-fire span { font-size: 1.98rem; font-weight: 600; color: var(--ink); line-height: 1.2; }
+.kut-fire span b { font-size: 2.5rem; font-weight: 800; color: var(--warn); }
+.kut-fire em { display: block; font-style: normal; font-size: 1.65rem; font-weight: 400; color: var(--ink-mute); }
 
-@keyframes pixel-drift {
-  0%   { transform: translate(0px,  0px); }
-  25%  { transform: translate(3px,  2px); }
-  50%  { transform: translate(-2px, 3px); }
-  75%  { transform: translate(2px, -3px); }
-  100% { transform: translate(0px,  0px); }
+/* programmes */
+.prog { display: grid; gap: .85rem; align-content: start; }
+.card-prog { justify-content: space-between; }
+.prog-row {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 1.3rem; align-items: center;
+  padding: .95rem 1.2rem; border-radius: 1.1rem;
+  background: rgba(79,168,232,.07);
+  border-left: .38rem solid var(--brand);
 }
-
-/* =========================================================
-   SPLASH VIEW  (adapted from provided s.html)
-   ========================================================= */
-.view-splash { background: var(--splash-bg); }
-
-.stage {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  overflow: hidden;
+.prog-n {
+  font-family: 'Golos', sans-serif;
+  font-size: 3.6rem; font-weight: 900; line-height: 1; color: var(--brand);
+  font-variant-numeric: lining-nums; min-width: 5.4rem; text-align: center;
 }
+.prog-t { font-size: 2.02rem; font-weight: 700; color: var(--ink); line-height: 1.16; }
+.prog-t em { display: block; font-style: normal; font-size: 1.66rem; font-weight: 400; color: var(--ink-mute); }
+.prog-d {
+  text-align: right; font-size: 1.86rem; font-weight: 700; color: var(--ink-dim);
+  font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; line-height: 1.16;
+}
+.prog-d em { display: block; font-style: normal; font-size: 1.58rem; font-weight: 500; color: var(--ink-mute); }
+.prog-note {
+  margin: 1.1rem 0 0; font-size: 1.76rem; font-weight: 500; color: var(--ink-dim); line-height: 1.24;
+}
+.prog-note em { display: block; font-style: normal; font-weight: 400; font-size: 1.6rem; color: var(--ink-mute); margin-top: .2rem; }
 
-/* Background crossfade */
+/* ---------- Footer CTA ---------- */
+.cta {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 2.2rem;
+  padding: 1.7rem 2.4rem;
+  border-radius: var(--radius);
+  background: linear-gradient(100deg, rgba(79,168,232,.2), rgba(38,57,130,.3) 60%, rgba(38,57,130,.1));
+  border: .2rem solid rgba(79,168,232,.46);
+}
+.cta-ico { width: 6rem; height: 6rem; color: var(--brand); flex: none; stroke-width: 1.6; }
+.cta-bg {
+  font-family: 'Golos', sans-serif;
+  font-size: 3.3rem; font-weight: 700; color: var(--ink); line-height: 1.12;
+}
+.cta-en { margin-top: .35rem; font-size: 2.25rem; font-weight: 500; color: var(--ink-dim); }
+.cta-hint { text-align: right; }
+.cta-hint span { display: block; font-size: 2.1rem; font-weight: 700; color: var(--sky); }
+.cta-hint em { font-style: normal; font-size: 1.8rem; font-weight: 400; color: var(--ink-mute); }
+
+/* ============================================================
+   SPLASH VIEW — burn-in relief (unchanged behaviour)
+   ============================================================ */
+.view-splash { background: #0a1420; }
+.stage { position: absolute; inset: 0; overflow: hidden; }
+
 .bg-slide {
   position: absolute; inset: 0;
-  background-size: cover;
-  background-position: center;
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 2.4s ease-in-out;
+  background-size: cover; background-position: center;
+  opacity: 0; transition: opacity 3.2s ease-in-out;
+  transform: scale(1.04);
+  animation: kenburns 46s ease-in-out infinite alternate;
 }
+.bg-slide-1 { background-image: url('assets/cotton-bg-1.jpg'); }
+.bg-slide-2 { background-image: url('assets/cotton-bg-2.jpg'); animation-delay: -23s; }
 .bg-slide.is-active { opacity: 1; }
-.bg-slide-1 { background-image: url('assets/cotton-bg-2.jpg'); }
-.bg-slide-2 { background-image: url('assets/cotton-bg-1.jpg'); }
+@keyframes kenburns {
+  from { transform: scale(1.04) translate(0,0); }
+  to   { transform: scale(1.12) translate(-1.2%, .8%); }
+}
 
-/* Vignette overlay */
 .bg-vignette {
   position: absolute; inset: 0;
-  z-index: 2;
-  background: radial-gradient(
-    ellipse 60% 60% at 50% 50%,
-    rgba(12, 12, 15, 0.30) 0%,
-    rgba(22, 19, 19, 0.21) 100%
-  );
-  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 38%, rgba(4,10,20,.55) 100%),
+    linear-gradient(180deg, rgba(4,10,20,.36), transparent 32%, transparent 66%, rgba(4,10,20,.45));
 }
 
-/* Floating particles */
-.particles {
-  position: absolute; inset: 0;
-  z-index: 3;
-  pointer-events: none;
-}
+.particles { position: absolute; inset: 0; }
 .particle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.72);
-  filter: blur(1px);
-  animation: floatUp linear infinite;
+  position: absolute; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 1.2rem rgba(255,255,255,.75);
+  animation-name: rise; animation-timing-function: linear; animation-iteration-count: infinite;
 }
-@keyframes floatUp {
-  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
-  5%   { opacity: 1; }
-  95%  { opacity: 0.4; }
-  100% { transform: translateY(-110vh) translateX(30px); opacity: 0; }
+@keyframes rise {
+  0%   { transform: translateY(0) translateX(0) scale(1); }
+  50%  { transform: translateY(-55vh) translateX(2.2rem) scale(1.12); }
+  100% { transform: translateY(-110vh) translateX(-1.6rem) scale(.9); }
 }
 
-/* Clock (top-right) */
-.live-clock {
-  position: absolute;
-  top: clamp(24px, 3vh, 60px);
-  right: clamp(32px, 4vw, 80px);
-  z-index: 12;
-  text-align: right;
-  opacity: 0;
-  animation: riseIn 0.9s 0.6s var(--ease-out) forwards;
-}
+.live-clock { position: absolute; top: 5rem; right: 6rem; text-align: right; color: #fff; }
 .clock-time {
-  font-size: clamp(32px, 3.2vw, 76px);
-  font-weight: 200;
-  color: rgba(255,255,255,0.92);
-  letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 2px 22px rgba(0,0,0,0.65);
+  font-size: 8.4rem; font-weight: 300; line-height: 1;
+  letter-spacing: .01em; font-variant-numeric: tabular-nums lining-nums;
+  text-shadow: 0 .3rem 2.4rem rgba(0,0,0,.5);
 }
 .clock-date {
-  font-size: clamp(12px, 0.95vw, 22px);
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  text-shadow: 0 1px 10px rgba(0,0,0,0.5);
+  margin-top: .8rem; font-size: 2.7rem; font-weight: 400;
+  color: rgba(255,255,255,.86); text-shadow: 0 .2rem 1.6rem rgba(0,0,0,.5);
 }
 
-/* Centered pulsing logo */
 .logo-center {
   position: absolute; inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  animation: riseIn 1.2s 0.4s var(--ease-out) forwards;
+  display: flex; align-items: center; justify-content: center;
 }
 .logo-img {
-  width: clamp(360px, 40vw, 1400px);
-  height: auto;
-  filter:
-    drop-shadow(0 0 60px rgba(255, 255, 255, 0.55))
-    drop-shadow(0 4px 20px rgba(255, 255, 255, 0.8));
-  animation: logoPulse 7s 1.6s ease-in-out infinite;
+  width: 46rem; height: auto;
+  filter: drop-shadow(0 1.2rem 4rem rgba(0,0,0,.45));
+  animation: pulse 7s ease-in-out infinite;
 }
-@keyframes logoPulse {
-  0%, 100% {
-    filter:
-      drop-shadow(0 0 50px rgba(255, 255, 255, 1))
-      drop-shadow(0 4px 20px rgba(255, 255, 255, 0.92));
-  }
-  50% {
-    filter:
-      drop-shadow(0 0 80px rgba(255, 255, 255, 0.40))
-      drop-shadow(0 6px 28px rgba(114, 114, 114, 0.65));
-  }
+@keyframes pulse {
+  0%,100% { transform: scale(1);    opacity: .96; }
+  50%     { transform: scale(1.045); opacity: 1;  }
 }
 
-@keyframes riseIn {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .board, .bg-slide, .logo-img, .particle { animation: none !important; }
 }

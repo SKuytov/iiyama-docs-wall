@@ -1,32 +1,27 @@
 {
-  "version": "65b9dc231dab",
-  "generatedAt": "2026-08-12T10:43:34+00:00",
+  "version": "8b377ae593c8",
+  "generatedAt": "2026-08-12T11:20:13+00:00",
   "files": [
     {
       "path": "index.html",
-      "sha256": "9d4ba5252d744729657e36f232ead0043834e31d172fe9cff44713cf8e2921cf",
-      "size": 1912,
+      "sha256": "1c5248b401249828bc619788572329544e2e9449c2888a5fc77829923a44ccf1",
+      "size": 26676,
       "remote": "1.html"
     },
     {
       "path": "style.css",
-      "sha256": "51b425673bf3318cbc1904c04a7b6d9b98419c51c325c7c49c318d749e3435f0",
-      "size": 5139
+      "sha256": "325dc7d378edee325d2a4277664258497c47e44516046fce2de5530508f21738",
+      "size": 20218
     },
     {
       "path": "app.js",
-      "sha256": "bd29931d9accbe101cc54ea6e4ddd684a12f62ce85a085f5bf4370441322b513",
-      "size": 6412
+      "sha256": "e79db3da58a994e9195cddcc5ff1efc712aa89930d54c5d75453291ffa506fe6",
+      "size": 7907
     },
     {
       "path": "sw.js",
-      "sha256": "8a7818db5ce0200575cc2f4bc15260c5ffc6742cad9a38b5a0ef4cb1351d9f4b",
-      "size": 1656
-    },
-    {
-      "path": "assets/board.jpg",
-      "sha256": "1f2353cb6bbc9f7a6b811e5bfe11e25caffb77cff7e1db54d64b2ff776a72172",
-      "size": 1965107
+      "sha256": "b86b03f7283971feaf6bc79cff257089534d303e5ce6d7d3c80ab8cd231a7940",
+      "size": 2092
     },
     {
       "path": "assets/cotton-bg-1.jpg",
@@ -42,6 +37,46 @@
       "path": "assets/septona-logo.png",
       "sha256": "4d5a7c6e1448c1dfaccfca0f50176a3852eb63c10b5a19a51c8d5c5187839160",
       "size": 321630
+    },
+    {
+      "path": "assets/fonts/golos-cyrillic.woff2",
+      "sha256": "17d048ca05cb1218af3c0d6dcdf882989e6d1cc5dcb598ea50eaf54850ff7229",
+      "size": 22032
+    },
+    {
+      "path": "assets/fonts/golos-cyrillic-ext.woff2",
+      "sha256": "70cf502d77aa23c8a573db8853f20a8db705d18414d170f257a9e939113aad47",
+      "size": 17508
+    },
+    {
+      "path": "assets/fonts/golos-latin.woff2",
+      "sha256": "9a69d0aa4734c4022224c002a3d944a702e0204972a49d892789f5668b922c2a",
+      "size": 37916
+    },
+    {
+      "path": "assets/fonts/golos-latin-ext.woff2",
+      "sha256": "05befabe4813f41238ce6ea4f5ecd6b758591e9ef2f303a9932bff68ba66dc66",
+      "size": 19180
+    },
+    {
+      "path": "assets/fonts/inter-cyrillic.woff2",
+      "sha256": "71d5ee93cc1e9f1d520a3a8b66456de18c7879d8df09d57fcd2eaff75fef0075",
+      "size": 18748
+    },
+    {
+      "path": "assets/fonts/inter-cyrillic-ext.woff2",
+      "sha256": "ca157063339ac4ad418f214f3abfed119b0798ab4d377386ce5c9e5a7a435ebd",
+      "size": 25960
+    },
+    {
+      "path": "assets/fonts/inter-latin.woff2",
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "size": 48256
+    },
+    {
+      "path": "assets/fonts/inter-latin-ext.woff2",
+      "sha256": "34b9c504cab7a73e37b746343a449132e56cf7b5481af2cb81dc74dcff25c956",
+      "size": 85068
     }
   ]
 }

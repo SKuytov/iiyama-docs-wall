@@ -7,17 +7,421 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Septona Bulgaria — Информационно табло</title>
-  <link rel="preload" as="image" href="assets/board.jpg" />
+  <!-- No `crossorigin` here on purpose: the APK loads this page from a file://
+       origin, where a CORS-mode font fetch is rejected outright. Same-origin
+       preload works on both file:// and https://. -->
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/golos-cyrillic.woff2" />
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-cyrillic.woff2" />
   <link rel="preload" as="image" href="assets/cotton-bg-1.jpg" />
   <link rel="preload" as="image" href="assets/septona-logo.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!-- ============================================================
+     ICON SPRITE
+     ISO-7010-inspired pictograms. Stroke-based, inherit currentColor,
+     so a single sprite serves every accent colour on the board.
+     ============================================================ -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- hi-vis vest -->
+    <symbol id="i-vest" viewBox="0 0 24 24">
+      <path d="M9 3l3 3 3-3 4 2.2v15.3H5V5.2z"/><path d="M12 6v15"/>
+      <path d="M8 10h2M8 13.5h2M14 10h2M14 13.5h2"/>
+    </symbol>
+    <!-- safety boot -->
+    <symbol id="i-boot" viewBox="0 0 24 24">
+      <path d="M6 4h4v7l8 3.2c1.4.6 2 1.6 2 3.1V20H6z"/><path d="M6 16.5h14"/>
+    </symbol>
+    <!-- speed limit -->
+    <symbol id="i-speed" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/><path d="M12 12l4.2-4.2"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+      <path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>
+    </symbol>
+    <!-- engine off -->
+    <symbol id="i-engine" viewBox="0 0 24 24">
+      <path d="M8.5 4.5a5 5 0 017 0"/><path d="M6.2 7.2a8.5 8.5 0 0111.6 0"/>
+      <path d="M12 11v5"/><circle cx="12" cy="19" r="2.4"/>
+    </symbol>
+    <!-- wheel chock -->
+    <symbol id="i-chock" viewBox="0 0 24 24">
+      <circle cx="10" cy="10" r="6.2"/><circle cx="10" cy="10" r="2"/>
+      <path d="M2 21h20"/><path d="M16 21l4.5-6H22v6z" fill="currentColor" stroke="none"/>
+    </symbol>
+    <!-- secured load -->
+    <symbol id="i-strap" viewBox="0 0 24 24">
+      <rect x="3.5" y="7" width="17" height="12" rx="1"/><path d="M8.5 4v18M15.5 4v18"/>
+      <path d="M3.5 12.8h17"/>
+    </symbol>
+    <!-- no smoking -->
+    <symbol id="i-nosmoke" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9.2"/><path d="M5.5 5.5L18.5 18.5"/>
+      <path d="M6 14.2h9"/><path d="M17 14.2h1.6"/><path d="M15 11.2c1.6-.9 1.6-2.4 0-3.4"/>
+    </symbol>
+    <!-- no eating -->
+    <symbol id="i-noeat" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9.2"/><path d="M5.5 5.5L18.5 18.5"/>
+      <path d="M9 7.2v4.2M9 11.4V17"/><path d="M15 7.2c1.4 0 2 1 2 2.4S16.4 12 15 12v5"/>
+    </symbol>
+    <!-- no entry -->
+    <symbol id="i-noentry" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9.2"/><path d="M6.6 12h10.8" stroke-width="3.2"/>
+    </symbol>
+    <!-- stay in cabin -->
+    <symbol id="i-cabin" viewBox="0 0 24 24">
+      <path d="M3 16.5V8.5A1.5 1.5 0 014.5 7h6.2l3.3 4h4.5A1.5 1.5 0 0120 12.5v4z"/>
+      <circle cx="7.2" cy="18.4" r="1.9"/><circle cx="16.6" cy="18.4" r="1.9"/>
+      <path d="M9 18.4h5.7"/>
+    </symbol>
+    <!-- documents -->
+    <symbol id="i-doc" viewBox="0 0 24 24">
+      <path d="M6 3h8l4.5 4.5V21H6z"/><path d="M13.6 3v5h4.9"/><path d="M9 12h6M9 15.4h6M9 18.2h3.6"/>
+    </symbol>
+    <!-- signed &amp; stamped -->
+    <symbol id="i-stamp" viewBox="0 0 24 24">
+      <path d="M5 3h8l4.5 4.5V15H5z"/><path d="M12.6 3v5h4.9"/>
+      <circle cx="16" cy="18" r="4.4"/><path d="M14.1 18l1.5 1.6 2.5-3"/>
+    </symbol>
+    <!-- toilets -->
+    <symbol id="i-toilet" viewBox="0 0 24 24">
+      <circle cx="7" cy="4.6" r="2"/><path d="M7 7.2c-1.7 0-2.6 1-2.6 2.6V15h1.3l.5 6h1.6l.5-6h1.3V9.8C9.6 8.2 8.7 7.2 7 7.2z"/>
+      <circle cx="17" cy="4.6" r="2"/><path d="M17 7.2c-1.8 0-2.7 1-3 2.6L13 15h1.9l.4 6h3.4l.4-6H21l-1-5.2c-.3-1.6-1.2-2.6-3-2.6z"/>
+      <path d="M12 3.4v17.2"/>
+    </symbol>
+    <!-- parking -->
+    <symbol id="i-parking" viewBox="0 0 24 24">
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2"/>
+      <path d="M9.6 17V7h3.2a3.1 3.1 0 010 6.2H9.6"/>
+    </symbol>
+    <!-- no alcohol / drugs -->
+    <symbol id="i-noalcohol" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9.2"/><path d="M5.5 5.5L18.5 18.5"/>
+      <path d="M8.6 6.6h6.8l-2.4 5v5.8"/><path d="M10 18.6h5.2"/>
+    </symbol>
+    <!-- report incident -->
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3.4L22 20.6H2z"/><path d="M12 9.4v5"/>
+      <circle cx="12" cy="17.6" r="1.1" fill="currentColor" stroke="none"/>
+    </symbol>
+    <!-- CCTV -->
+    <symbol id="i-cctv" viewBox="0 0 24 24">
+      <path d="M2.6 8.4l14.2-3.8 1.5 5.6L4.1 14z"/><path d="M6 13.2l1.4 4.2"/>
+      <path d="M12 4.2V21"/><path d="M18.3 10.2l3.1-.8"/>
+    </symbol>
+    <!-- face mask -->
+    <symbol id="i-mask" viewBox="0 0 24 24">
+      <path d="M4.5 8.6l7.5-1.6 7.5 1.6v4.6c0 2.6-3.4 4.8-7.5 4.8s-7.5-2.2-7.5-4.8z"/>
+      <path d="M4.5 10.6H1.8M22.2 10.6h-2.7"/><path d="M7.5 11.6h9M7.5 14.2h9"/>
+    </symbol>
+    <!-- waste / recycling -->
+    <symbol id="i-waste" viewBox="0 0 24 24">
+      <path d="M12 3.6l2.6 4.4h-5.2z" fill="currentColor" stroke="none"/>
+      <path d="M4.6 16.4l2.6-4.5 2.2 1.3-2.6 4.5z"/><path d="M19.4 16.4l-2.6-4.5-2.2 1.3 2.6 4.5z"/>
+      <path d="M7 20.4h10"/>
+    </symbol>
+    <!-- kiosk / touch -->
+    <symbol id="i-kiosk" viewBox="0 0 24 24">
+      <rect x="4" y="2.6" width="16" height="13" rx="1.4"/><path d="M9 19h6M12 15.6V19"/>
+      <path d="M7.4 21.4h9.2"/>
+      <circle cx="12" cy="9" r="2.6"/>
+    </symbol>
+    <!-- phone -->
+    <symbol id="i-phone" viewBox="0 0 24 24">
+      <path d="M6.4 3.6h3l1.6 4-2 1.4a12 12 0 006 6l1.4-2 4 1.6v3c0 1-.8 1.8-1.8 1.7C11.3 20.5 3.5 12.7 2.7 5.4A1.7 1.7 0 014.4 3.6z"/>
+    </symbol>
+    <!-- checklist / programme -->
+    <symbol id="i-list" viewBox="0 0 24 24">
+      <path d="M4 6.2l1.8 1.8L9 4.8"/><path d="M4 13l1.8 1.8L9 11.6"/><path d="M4 19.8l1.8 1.8L9 18.4"/>
+      <path d="M12 6.6h8M12 13.4h8M12 20.2h8"/>
+    </symbol>
+    <!-- committee / people -->
+    <symbol id="i-people" viewBox="0 0 24 24">
+      <circle cx="8.4" cy="7.6" r="3"/><path d="M2.6 20.4c0-3.2 2.6-5.4 5.8-5.4s5.8 2.2 5.8 5.4"/>
+      <circle cx="17" cy="8.6" r="2.4"/><path d="M14.6 15.4c2.8-.6 6.8.6 6.8 5"/>
+    </symbol>
+    <!-- fire -->
+    <symbol id="i-fire" viewBox="0 0 24 24">
+      <path d="M12 2.6s5.4 4.6 5.4 9.8a5.4 5.4 0 01-10.8 0C6.6 9.6 9 7 9 7s.6 2.2 2 2.2c1.6 0 1.6-4.4 1-6.6z"/>
+      <path d="M12 21.4v-4"/>
+    </symbol>
+  </defs>
+</svg>
+
   <!-- ============ DOCS VIEW ============ -->
-  <section class="view view-docs is-active" id="docsView" aria-label="Документи">
-    <img class="board-img" src="assets/board.jpg" alt="Информационно табло — актуални заповеди, програми и телефони" />
-    <!-- Sub-pixel drift wrapper handles pixel-level anti-burn-in shift -->
+  <section class="view view-docs is-active" id="docsView" aria-label="Информационно табло">
+    <div class="board" id="board">
+
+      <!-- ---------- HEADER ---------- -->
+      <header class="hdr">
+        <img class="hdr-logo" src="assets/septona-logo.png" alt="Septona Bulgaria" />
+        <div class="hdr-title">
+          <h1>Информационно табло</h1>
+          <p lang="en">Information board &middot; Septona Bulgaria AD &middot; Ruse</p>
+        </div>
+        <div class="hdr-meta">
+          <div class="hdr-clock" id="boardTime">--:--</div>
+          <div class="hdr-date" id="boardDate"></div>
+        </div>
+      </header>
+
+      <!-- ---------- EMERGENCY STRIP ---------- -->
+      <section class="emg" aria-label="Спешни телефони">
+        <div class="emg-112">
+          <svg class="emg-112-ico"><use href="#i-phone"/></svg>
+          <div class="emg-112-body">
+            <div class="emg-112-num">112</div>
+            <div class="emg-112-lbl">Пожарна &middot; Бърза помощ &middot; Полиция</div>
+            <div class="emg-112-lbl-en" lang="en">Fire &middot; Ambulance &middot; Police</div>
+          </div>
+        </div>
+
+        <div class="emg-grid">
+          <div class="emg-col">
+            <div class="emg-col-hd">Външни служби <span lang="en">/ External services</span></div>
+            <div class="emg-row">
+              <span class="emg-num">082 882 393</span>
+              <span class="emg-who">Пожарна Русе — секция 2<em lang="en">Fire brigade Ruse — section 2</em></span>
+            </div>
+            <div class="emg-row">
+              <span class="emg-num">082 882 91</span>
+              <span class="emg-who">Полиция Русе<em lang="en">Police Ruse</em></span>
+            </div>
+            <div class="emg-row">
+              <span class="emg-num">0700 161 16</span>
+              <span class="emg-who">Електроразпределение<em lang="en">Regional electricity company</em></span>
+            </div>
+          </div>
+
+          <div class="emg-col">
+            <div class="emg-col-hd">При извънредна ситуация — вътрешни <span lang="en">/ Internal, in an emergency</span></div>
+            <div class="emg-row">
+              <span class="emg-num">0894 751 742</span>
+              <span class="emg-who">Константинос Акилидис — Директор предприятие<em lang="en">Plant Director</em></span>
+            </div>
+            <div class="emg-row">
+              <span class="emg-num">0893 532 849</span>
+              <span class="emg-who">Иван Великов — Директор поддръжка<em lang="en">Maintenance Director</em></span>
+            </div>
+            <div class="emg-row">
+              <span class="emg-num">0893 532 847</span>
+              <span class="emg-who">Мариела Ачева — Директор производство<em lang="en">Production Director</em></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- MAIN BAND ---------- -->
+      <div class="band">
+
+        <!-- ===== CARD: ORDER No.17 ===== -->
+        <section class="card card-rules">
+          <div class="card-hd">
+            <svg class="card-ico"><use href="#i-vest"/></svg>
+            <div class="card-hd-txt">
+              <h2>Правила за шофьори и посетители</h2>
+              <p lang="en">Rules for drivers &amp; visitors</p>
+            </div>
+            <span class="doc-ref">Заповед № 17<em>02.10.2023</em></span>
+          </div>
+
+          <ul class="rules">
+            <li><svg class="r-ico"><use href="#i-vest"/></svg><span class="r-bg">Отразителна жилетка постоянно</span><span class="r-en" lang="en">Hi-vis vest at all times</span></li>
+            <li><svg class="r-ico"><use href="#i-boot"/></svg><span class="r-bg">Предпазни обувки</span><span class="r-en" lang="en">Safety shoes</span></li>
+            <li><svg class="r-ico"><use href="#i-speed"/></svg><span class="r-bg">Макс. 20 км/ч в завода</span><span class="r-en" lang="en">Max 20 km/h on site</span></li>
+            <li><svg class="r-ico"><use href="#i-engine"/></svg><span class="r-bg">Двигател изключен при товарене</span><span class="r-en" lang="en">Engine off during loading</span></li>
+            <li><svg class="r-ico"><use href="#i-chock"/></svg><span class="r-bg">Клинове под колелата на рампата</span><span class="r-en" lang="en">Wheel chocks while on the ramp</span></li>
+            <li><svg class="r-ico"><use href="#i-strap"/></svg><span class="r-bg">Обезопасен товар: колани, мрежи, рампи</span><span class="r-en" lang="en">Load secured: belts, nets, ramps</span></li>
+            <li><svg class="r-ico r-no"><use href="#i-nosmoke"/></svg><span class="r-bg">Не пушим в помещенията</span><span class="r-en" lang="en">No smoking indoors</span></li>
+            <li><svg class="r-ico r-no"><use href="#i-noeat"/></svg><span class="r-bg">Не се храним в помещенията</span><span class="r-en" lang="en">No eating indoors</span></li>
+            <li><svg class="r-ico r-no"><use href="#i-noentry"/></svg><span class="r-bg">Без достъп до производство и складове</span><span class="r-en" lang="en">No entry to production &amp; warehouses</span></li>
+            <li><svg class="r-ico"><use href="#i-cabin"/></svg><span class="r-bg">Изчакайте в кабината на камиона</span><span class="r-en" lang="en">Wait in the truck cabin</span></li>
+            <li><svg class="r-ico"><use href="#i-doc"/></svg><span class="r-bg">Документи — в зоната пред офисите</span><span class="r-en" lang="en">Documents — at the area outside the offices</span></li>
+            <li><svg class="r-ico"><use href="#i-stamp"/></svg><span class="r-bg">Подписан и подпечатан опаковъчен лист при излизане</span><span class="r-en" lang="en">Signed &amp; stamped packing list on exit</span></li>
+            <li><svg class="r-ico"><use href="#i-toilet"/></svg><span class="r-bg">Тоалетни само в зоната за шофьори</span><span class="r-en" lang="en">Drivers&rsquo; toilets only, designated area</span></li>
+            <li><svg class="r-ico"><use href="#i-parking"/></svg><span class="r-bg">Паркиране по рампи 1&ndash;12, не пред администрацията</span><span class="r-en" lang="en">Park on ramps 1&ndash;12, not by administration</span></li>
+            <li><svg class="r-ico r-no"><use href="#i-noalcohol"/></svg><span class="r-bg">Нулева толерантност: алкохол и наркотици</span><span class="r-en" lang="en">Zero tolerance: alcohol &amp; drugs</span></li>
+            <li><svg class="r-ico"><use href="#i-alert"/></svg><span class="r-bg">Докладвайте инцидент незабавно</span><span class="r-en" lang="en">Report any incident immediately</span></li>
+            <li><svg class="r-ico"><use href="#i-cctv"/></svg><span class="r-bg">Обектът е под видеонаблюдение</span><span class="r-en" lang="en">Site under video surveillance</span></li>
+            <li><svg class="r-ico"><use href="#i-mask"/></svg><span class="r-bg">Маска за еднократна употреба, когато е приложимо</span><span class="r-en" lang="en">Disposable mask, when applicable</span></li>
+          </ul>
+
+          <p class="rules-warn">
+            <svg class="warn-ico"><use href="#i-alert"/></svg>
+            <span>При неспазване на заповедта обслужването на камиона се отказва.<em lang="en">Non-compliance: service of the truck will be refused.</em></span>
+          </p>
+        </section>
+
+        <!-- ===== CARD: PHONE DIRECTORY ===== -->
+        <section class="card card-dir">
+          <div class="card-hd">
+            <svg class="card-ico"><use href="#i-phone"/></svg>
+            <div class="card-hd-txt">
+              <h2>Служебни телефони</h2>
+              <p lang="en">Internal directory &middot; 2026</p>
+            </div>
+          </div>
+
+          <div class="dir">
+            <div class="dir-grp">
+              <h3>Ръководство <span lang="en">/ Management</span></h3>
+              <div class="dir-row"><b>Константинос Акилидис</b><i>Директор предприятие</i><span>0894 751 742</span></div>
+              <div class="dir-row"><b>Иван Великов</b><i>Технически директор</i><span>0893 532 849</span></div>
+              <div class="dir-row"><b>Ивайло Илиев</b><i>Главен техник</i><span>0895 644 543</span></div>
+              <div class="dir-row"><b>Мариела Ачева</b><i>Организатор производство</i><span>0893 532 847</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Качество <span lang="en">/ Quality</span></h3>
+              <div class="dir-row"><b>Стилияна Механджиева</b><i>Специалист качество</i><span>0894 591 146</span></div>
+              <div class="dir-row"><b>Доротея Димитрова</b><i>Осигуряване на качеството</i><span>0893 036 449</span></div>
+              <div class="dir-row"><b>Ивелина Стоянова</b><i>Качествен контрол</i><span>0896 731 181</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Цех тампони / клечки за уши <span lang="en">/ Cotton buds &amp; pads</span></h3>
+              <div class="dir-row"><b>Янка Тодорова</b><i>Началник смяна</i><span>0892 276 069</span></div>
+              <div class="dir-row"><b>Ренгинар Асан</b><i>Началник смяна</i><span>0893 036 450</span></div>
+              <div class="dir-row"><b>Семра Сюлейманова</b><i>Началник смяна</i><span>0893 614 282</span></div>
+              <div class="dir-row"><b>Християна Пенчева</b><i>Качествен контрол</i><span>0893 695 676</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Мокри кърпи <span lang="en">/ Wet wipes</span></h3>
+              <div class="dir-row"><b>Борислав Иванов</b><i>Ръководител участък</i><span>0894 591 147</span></div>
+              <div class="dir-row"><b>Даниела Сярова</b><i>Качествен контрол</i><span>0894 591 294</span></div>
+              <div class="dir-row"><b>Зорница Тодорова</b><i>Качествен контрол</i><span>0895 644 548</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Производство <span lang="en">/ Production &amp; lab</span></h3>
+              <div class="dir-row"><b>Ивайло Александров</b><i>Нетъкан текстил</i><span>0894 591 296</span></div>
+              <div class="dir-row"><b>Емилиян Михайлов</b><i>Пластмаса / хартия</i><span>0878 125 275</span></div>
+              <div class="dir-row"><b>Татяна Тодорова</b><i>Ръководител лаборатория</i><span>0893 036 452</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Логистика и склад <span lang="en">/ Logistics &amp; warehouse</span></h3>
+              <div class="dir-row"><b>Владимир Пенчев</b><i>Мениджър логистика</i><span>0895 644 542</span></div>
+              <div class="dir-row"><b>Пламенка Сичанова</b><i>Отдел логистика</i><span>0895 644 545</span></div>
+              <div class="dir-row"><b>Преслава Макаер</b><i>Отдел логистика</i><span>0892 276 064</span></div>
+              <div class="dir-row"><b>Деян Христов</b><i>Началник склад</i><span>0893 695 672</span></div>
+            </div>
+
+            <div class="dir-grp">
+              <h3>Човешки ресурси <span lang="en">/ Human resources</span></h3>
+              <div class="dir-row"><b>Стефка Илиева</b><i>Човешки ресурси</i><span>0895 644 547</span></div>
+              <div class="dir-row"><b>Марина Василева</b><i>Човешки ресурси</i><span>0893 695 675</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== RIGHT STACK ===== -->
+        <div class="stack">
+
+          <!-- waste -->
+          <section class="card card-waste">
+            <div class="card-hd">
+              <svg class="card-ico"><use href="#i-waste"/></svg>
+              <div class="card-hd-txt">
+                <h2>Отпадъци</h2>
+                <p lang="en">Waste management</p>
+              </div>
+              <span class="doc-ref">Заповед № 16<em>30.04.2024</em></span>
+            </div>
+
+            <div class="wst-block wst-ban">
+              <div class="wst-lbl">Забранено <span lang="en">/ Prohibited</span></div>
+              <ul>
+                <li>Смесване на опасни отпадъци с други отпадъци, вещества или материали, включително разреждане<em lang="en">Mixing hazardous waste with other waste, substances or materials, incl. dilution</em></li>
+                <li>Смесване на оползотворими с неоползотворими отпадъци<em lang="en">Mixing recoverable with non-recoverable waste</em></li>
+              </ul>
+            </div>
+
+            <div class="wst-block wst-req">
+              <div class="wst-lbl">Задължително <span lang="en">/ Required</span></div>
+              <ul>
+                <li>Разделно събиране в обозначени съдове<em lang="en">Separate collection in marked containers</em></li>
+              </ul>
+            </div>
+            <p class="wst-legal">чл.&nbsp;8, ал.&nbsp;2 и чл.&nbsp;30, ал.&nbsp;2 ЗУО</p>
+          </section>
+
+          <!-- committee -->
+          <section class="card card-kut">
+            <div class="card-hd">
+              <svg class="card-ico"><use href="#i-people"/></svg>
+              <div class="card-hd-txt">
+                <h2>Комитет по условия на труд</h2>
+                <p lang="en">Health &amp; safety committee</p>
+              </div>
+            </div>
+            <div class="kut">
+              <div class="kut-side">
+                <h3>От работодателя <span lang="en">/ Employer</span></h3>
+                <p>Константинос Акилидис <i>Директор</i></p>
+                <p>Ивайло Кръстев Илиев <i>Главен техник</i></p>
+                <p>Иван Великов Стефанов <i>Директор поддръжка</i></p>
+              </div>
+              <div class="kut-side">
+                <h3>От работниците <span lang="en">/ Workers</span></h3>
+                <p>Янка Петрова Тодорова <i>Качествен контрол</i></p>
+                <p>Зорница Атанасова Тодорова <i>Качествен контрол</i></p>
+                <p>Деян Буденов Христов <i>Началник склад</i></p>
+              </div>
+            </div>
+            <p class="kut-fire">
+              <svg class="kut-fire-ico"><use href="#i-fire"/></svg>
+              <span><b>15</b> служители със сертификат за пожарна безопасност<em lang="en">15 employees certified in fire safety</em></span>
+            </p>
+          </section>
+
+          <!-- 2026 programmes -->
+          <section class="card card-prog">
+            <div class="card-hd">
+              <svg class="card-ico"><use href="#i-list"/></svg>
+              <div class="card-hd-txt">
+                <h2>Програми 2026</h2>
+                <p lang="en">2026 programmes</p>
+              </div>
+            </div>
+            <div class="prog">
+              <div class="prog-row">
+                <span class="prog-n">15</span>
+                <span class="prog-t">Обучения<em lang="en">Training topics</em></span>
+                <span class="prog-d">15.01 &ndash; 11.11.2026<em>E.160-1</em></span>
+              </div>
+              <div class="prog-row">
+                <span class="prog-n">28</span>
+                <span class="prog-t">Вътрешни инспекции<em lang="en">Internal inspections</em></span>
+                <span class="prog-d">23.01 &ndash; 14.12.2026<em>E.140-1/2</em></span>
+              </div>
+              <div class="prog-row">
+                <span class="prog-n">14</span>
+                <span class="prog-t">Зони по план за почистване и дезинфекция<em lang="en">Cleaning &amp; disinfection zones</em></span>
+                <span class="prog-d">01.01 &ndash; 31.12.2026<em>E.810-1/2</em></span>
+              </div>
+            </div>
+            <p class="prog-note">Извънредни инспекции: проверки за чистота и проверки от клиенти и сертификатори. ДДД — външна фирма „САНСИ“ ООД, Русе.<em lang="en">Extraordinary inspections: cleanliness checks, plus checks by customers and certification bodies.</em></p>
+          </section>
+
+        </div><!-- /stack -->
+      </div><!-- /band -->
+
+      <!-- ---------- FOOTER / KIOSK CTA ---------- -->
+      <footer class="cta">
+        <svg class="cta-ico"><use href="#i-kiosk"/></svg>
+        <div class="cta-txt">
+          <div class="cta-bg">Оригиналните подписани и подпечатани документи — на тъч&#8209;киоска</div>
+          <div class="cta-en" lang="en">Original signed &amp; stamped documents are available at the touch kiosk</div>
+        </div>
+        <div class="cta-hint">
+          <span>Изберете категория на екрана</span>
+          <em lang="en">Choose a category on the kiosk screen</em>
+        </div>
+      </footer>
+
+    </div><!-- /board -->
   </section>
 
   <!-- ============ SPLASH VIEW (burn-in relief) ============ -->

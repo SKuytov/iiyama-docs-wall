@@ -2,7 +2,7 @@
  * Cache-first for shell + assets, network-first for manifest.json
  * so the browser version keeps working when the network dies.
  */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `iiyama-docs-wall-${VERSION}`;
 
 const PRECACHE = [
@@ -10,10 +10,19 @@ const PRECACHE = [
   'index.html',
   'style.css',
   'app.js',
-  'assets/board.jpg',
   'assets/cotton-bg-1.jpg',
   'assets/cotton-bg-2.jpg',
   'assets/septona-logo.png',
+  // Fonts must be precached: the docs view is live HTML text now, and a
+  // fallback system face would reflow the tightly fitted 4K layout.
+  'assets/fonts/golos-cyrillic.woff2',
+  'assets/fonts/golos-cyrillic-ext.woff2',
+  'assets/fonts/golos-latin.woff2',
+  'assets/fonts/golos-latin-ext.woff2',
+  'assets/fonts/inter-cyrillic.woff2',
+  'assets/fonts/inter-cyrillic-ext.woff2',
+  'assets/fonts/inter-latin.woff2',
+  'assets/fonts/inter-latin-ext.woff2',
 ];
 
 self.addEventListener('install', (e) => {

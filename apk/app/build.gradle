@@ -8,8 +8,8 @@ android {
         applicationId "bg.septona.docswall"
         minSdk 21          // Android 5.0 — matches iiyama signage SoCs
         targetSdk 34
-        versionCode 4
-        versionName "2.2.0"
+        versionCode 5
+        versionName "2.3.0"
 
         // Baked-in fallback URL. Overridden by BuildConfig field so CI can inject a different origin.
         // Where the panel will look for updates. Uploads to this folder

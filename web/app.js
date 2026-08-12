@@ -1,6 +1,6 @@
 /* iiyama-docs-wall · signage controller
  *
- *  DOCS view  – shows the master 3840×2160 board.jpg
+ *  DOCS view  – live HTML board, authored at 3840×2160 in rem units
  *  SPLASH view – Septona animated splash (crossfade cotton bg + logo + particles + clock)
  *
  *  Cycle: DOCS 15 min → SPLASH 30 s → DOCS 15 min → ...
@@ -18,6 +18,25 @@
   const SPLASH_MS = (Number(params.get('splash')) || 30)      * 1000; //  30 s
   const BG_SWAP_MS = 25_000;                                          //  cotton crossfade
   const PARTICLE_COUNT = 55;
+
+  // -------- Proportional scaling root --------
+  //   The board is authored against a 3840px canvas in rem units, so 1rem must
+  //   equal 10px when the viewport is 3840 CSS px wide. The CSS fallback uses
+  //   calc(100vw/384); this is more exact because clientWidth excludes any
+  //   scrollbar. Recomputed on resize/orientation so a panel that reports its
+  //   size late still lands on an exact layout.
+  const DESIGN_W = 3840;
+  function setRootScale() {
+    const w = document.documentElement.clientWidth || window.innerWidth || DESIGN_W;
+    document.documentElement.style.fontSize = (w / (DESIGN_W / 10)) + 'px';
+  }
+  setRootScale();
+  window.addEventListener('resize', setRootScale);
+  window.addEventListener('orientationchange', setRootScale);
+  // Fonts loading can change metrics; re-assert once they settle.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(setRootScale).catch(function () {});
+  }
 
   // -------- View switcher --------
   const docsView   = document.getElementById('docsView');
@@ -45,11 +64,19 @@
   const MONTHS = ['Януари','Февруари','Март','Април','Май','Юни','Юли','Август','Септември','Октомври','Ноември','Декември'];
   const timeEl = document.getElementById('clockTime');
   const dateEl = document.getElementById('clockDate');
+  const bTimeEl = document.getElementById('boardTime');
+  const bDateEl = document.getElementById('boardDate');
   function tick() {
     const n = new Date();
     const p = v => String(v).padStart(2, '0');
-    timeEl.textContent = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
-    dateEl.textContent = `${DAYS[n.getDay()]}, ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+    const hm = `${p(n.getHours())}:${p(n.getMinutes())}`;
+    const dateStr = `${DAYS[n.getDay()]}, ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+    timeEl.textContent = `${hm}:${p(n.getSeconds())}`;
+    dateEl.textContent = dateStr;
+    // Board header shows HH:MM only — a ticking seconds digit on a 15-minute
+    // static view is just an extra pixel burning in one spot.
+    if (bTimeEl) bTimeEl.textContent = hm;
+    if (bDateEl) bDateEl.textContent = dateStr;
   }
   tick();
   setInterval(tick, 1000);
@@ -110,7 +137,8 @@
       'white-space:pre;pointer-events:none;border:2px solid #0f0';
     document.body.appendChild(diagEl);
     const paint = () => {
-      const img = document.querySelector('.board-img');
+      const bd = document.getElementById('board');
+      const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
       diagEl.textContent =
         'window.inner   : ' + window.innerWidth + ' x ' + window.innerHeight + '\n' +
         'screen         : ' + screen.width + ' x ' + screen.height + '\n' +
@@ -119,9 +147,10 @@
                         ' x ' + Math.round(window.innerHeight * window.devicePixelRatio) + '\n' +
         'doc scrollWH   : ' + document.documentElement.scrollWidth +
                         ' x ' + document.documentElement.scrollHeight + '\n' +
-        'board natural  : ' + (img ? img.naturalWidth + ' x ' + img.naturalHeight : 'n/a') + '\n' +
-        'board rendered : ' + (img ? Math.round(img.getBoundingClientRect().width) +
-                                ' x ' + Math.round(img.getBoundingClientRect().height) : 'n/a') + '\n' +
+        'root font-size : ' + rootPx.toFixed(3) + 'px  (1rem)\n' +
+        'board rendered : ' + (bd ? Math.round(bd.getBoundingClientRect().width) +
+                                ' x ' + Math.round(bd.getBoundingClientRect().height) : 'n/a') + '\n' +
+        'fonts loaded   : ' + (document.fonts ? document.fonts.status : 'n/a') + '\n' +
         'protocol       : ' + location.protocol + '\n' +
         'apk sync       : ' + apkStatus();
     };
