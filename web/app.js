@@ -90,6 +90,13 @@
   //   Open with ?diag=1 (or press "i"). Shows exactly what the panel reports so a
   //   scaling problem can be identified without a debugger attached.
   let diagEl = null, diagTimer = null;
+  function apkStatus() {
+    try {
+      return (window.DocsWall && DocsWall.status) ? DocsWall.status() : 'n/a (browser)';
+    } catch (e) {
+      return 'error: ' + e;
+    }
+  }
   function toggleDiag() {
     if (diagEl) {
       clearInterval(diagTimer); diagTimer = null;
@@ -115,7 +122,8 @@
         'board natural  : ' + (img ? img.naturalWidth + ' x ' + img.naturalHeight : 'n/a') + '\n' +
         'board rendered : ' + (img ? Math.round(img.getBoundingClientRect().width) +
                                 ' x ' + Math.round(img.getBoundingClientRect().height) : 'n/a') + '\n' +
-        'protocol       : ' + location.protocol;
+        'protocol       : ' + location.protocol + '\n' +
+        'apk sync       : ' + apkStatus();
     };
     paint();
     diagTimer = setInterval(paint, 1000);

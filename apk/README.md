@@ -10,9 +10,10 @@ A self-healing WebView kiosk for the **iiyama LH6560UHS-B2AG** signage panel.
 - The WebView **always loads `file://…/web/index.html`** — never a remote URL.
 - ⇒ The panel works with zero internet, forever.
 
-### 2 · Silent background sync
-- A `WorkManager` job runs every **6 hours** (only when the network is up).
-- It downloads `https://skuytov.eu/ii/manifest.json`.
+### 2 · Silent background sync — every 5 minutes
+- While the kiosk is running, `MainActivity` polls the server **every 5 minutes** (first check 20 s after launch).
+- A `WorkManager` job also runs every **15 minutes** as a backstop for when the activity has been killed. WorkManager silently clamps any periodic interval below 15 min, which is exactly why the fast cadence is driven from the activity instead.
+- It downloads `https://skuytov.eu/ii/manifest.json` with `If-None-Match` / `If-Modified-Since`, so an unchanged server replies **304 with no body** — a 5-minute poll costs a few hundred bytes.
 - The manifest lists every file with its **local path** (what the WebView loads), the **remote name** on the server (defaults to the local path), a SHA-256 hash, and an overall `version`.
 - If the version changed, it downloads only the files whose hash changed, verifies each SHA-256, writes them atomically (`.part` → `rename`), and finally saves the manifest.
 - Then it broadcasts `RELOAD` → the WebView reloads the new content.
@@ -92,7 +93,23 @@ When you change any file, regenerate the manifest so the panels pick it up:
 python3 tools/build-manifest.py
 ```
 
-Then upload the changed files **and** `manifest.json` to `https://skuytov.eu/ii/`. Within 6 hours (or immediately after the panel reboots) every panel will fetch, verify, and apply the update on its own.
+Then upload the changed files **and** `manifest.json` to `https://skuytov.eu/ii/`. **Within 5 minutes** every panel fetches, verifies, and applies the update on its own, then reloads the display — no reboot, no touching the panel.
+
+### Order of upload matters
+
+Upload the **content files first**, then `manifest.json` last. The manifest is the trigger: panels only act once its `version` changes. Uploading it last guarantees a panel never sees a new manifest pointing at files that aren't on the server yet. (Even if that happens, the sync aborts safely and retries 5 minutes later — the screen keeps showing the previous content.)
+
+### Verifying the sync on the panel
+
+Attach a USB keyboard and press **`i`** to toggle the diagnostic overlay. The `apk sync` line shows the current content version, the last poll result (`UPDATED` / `UNCHANGED` / `FAILED`), how long ago it ran, the interval, and the origin URL.
+
+Or over ADB:
+
+```bash
+adb logcat -s ContentSync:I MainActivity:I
+```
+
+You should see a `5-min poll → UNCHANGED` line every five minutes.
 
 ## Signing for production
 

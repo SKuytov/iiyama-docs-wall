@@ -34,14 +34,21 @@ public class App extends Application implements Configuration.Provider {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build();
 
-        // Sync every 6 h when online
+        // Backstop sync.
+        //
+        // The fast 5-minute polling lives in MainActivity (see POLL_INTERVAL_MS) because
+        // WorkManager silently clamps any periodic interval below 15 minutes. This job
+        // only matters when the activity is NOT running (killed by the system, pre-boot),
+        // so 15 minutes — the platform minimum — is the right value here.
         PeriodicWorkRequest sync = new PeriodicWorkRequest.Builder(
-                SyncWorker.class, 6, TimeUnit.HOURS)
+                SyncWorker.class, 15, TimeUnit.MINUTES)
             .setConstraints(net)
-            .setInitialDelay(2, TimeUnit.MINUTES)
+            .setInitialDelay(5, TimeUnit.MINUTES)
             .build();
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                SYNC_WORK, ExistingPeriodicWorkPolicy.KEEP, sync);
+                // REPLACE so upgrading the app applies the new interval instead of
+                // keeping the old 6-hour schedule from a previous install.
+                SYNC_WORK, ExistingPeriodicWorkPolicy.UPDATE, sync);
 
         // Watchdog every 15 min (no network requirement)
         PeriodicWorkRequest guard = new PeriodicWorkRequest.Builder(
