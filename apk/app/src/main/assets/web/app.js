@@ -83,7 +83,44 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 's' || e.key === 'S') { mode = 'splash'; showView('splash'); }
     if (e.key === 'd' || e.key === 'D') { mode = 'docs';   showView('docs');   }
+    if (e.key === 'i' || e.key === 'I') { toggleDiag(); }
   });
+
+  // -------- Viewport diagnostic overlay --------
+  //   Open with ?diag=1 (or press "i"). Shows exactly what the panel reports so a
+  //   scaling problem can be identified without a debugger attached.
+  let diagEl = null, diagTimer = null;
+  function toggleDiag() {
+    if (diagEl) {
+      clearInterval(diagTimer); diagTimer = null;
+      diagEl.remove(); diagEl = null;
+      return;
+    }
+    diagEl = document.createElement('div');
+    diagEl.style.cssText =
+      'position:fixed;left:0;top:0;z-index:99999;padding:14px 18px;' +
+      'background:rgba(0,0,0,.82);color:#0f0;font:600 20px/1.5 monospace;' +
+      'white-space:pre;pointer-events:none;border:2px solid #0f0';
+    document.body.appendChild(diagEl);
+    const paint = () => {
+      const img = document.querySelector('.board-img');
+      diagEl.textContent =
+        'window.inner   : ' + window.innerWidth + ' x ' + window.innerHeight + '\n' +
+        'screen         : ' + screen.width + ' x ' + screen.height + '\n' +
+        'devicePixelRatio: ' + window.devicePixelRatio + '\n' +
+        'CSS px total   : ' + Math.round(window.innerWidth * window.devicePixelRatio) +
+                        ' x ' + Math.round(window.innerHeight * window.devicePixelRatio) + '\n' +
+        'doc scrollWH   : ' + document.documentElement.scrollWidth +
+                        ' x ' + document.documentElement.scrollHeight + '\n' +
+        'board natural  : ' + (img ? img.naturalWidth + ' x ' + img.naturalHeight : 'n/a') + '\n' +
+        'board rendered : ' + (img ? Math.round(img.getBoundingClientRect().width) +
+                                ' x ' + Math.round(img.getBoundingClientRect().height) : 'n/a') + '\n' +
+        'protocol       : ' + location.protocol;
+    };
+    paint();
+    diagTimer = setInterval(paint, 1000);
+  }
+  if (params.get('diag') === '1') toggleDiag();
 
   // -------- Nightly reload at 03:30 Sofia so redeploys propagate --------
   (function scheduleNightlyReload() {

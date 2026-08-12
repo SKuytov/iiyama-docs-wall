@@ -1,22 +1,22 @@
 {
-  "version": "051ed75716ca",
-  "generatedAt": "2026-08-12T09:39:11+00:00",
+  "version": "a609ebfa8752",
+  "generatedAt": "2026-08-12T09:57:54+00:00",
   "files": [
     {
       "path": "index.html",
-      "sha256": "379b7781f532172a6badce2bbd5ccecac05d90478ac69f879894baa47f0274b4",
-      "size": 1679,
+      "sha256": "9d4ba5252d744729657e36f232ead0043834e31d172fe9cff44713cf8e2921cf",
+      "size": 1912,
       "remote": "1.html"
     },
     {
       "path": "style.css",
-      "sha256": "0480b911379dfeaa81e9e4ac27ff078e3017f07ad625cb1315cccec461516d4a",
-      "size": 4714
+      "sha256": "51b425673bf3318cbc1904c04a7b6d9b98419c51c325c7c49c318d749e3435f0",
+      "size": 5139
     },
     {
       "path": "app.js",
-      "sha256": "75347ef680becc212873b0e74e9f662878aa1b0e4883cb0bef85aad8634745d8",
-      "size": 4280
+      "sha256": "68e621cc5c0109066cf85143ea169f0fcdbb59c39ea346ecb217be6fd24dcce7",
+      "size": 6181
     },
     {
       "path": "sw.js",

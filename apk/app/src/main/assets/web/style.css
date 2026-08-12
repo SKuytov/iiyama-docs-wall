@@ -12,7 +12,12 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Lock the document to exactly the visible viewport. `position: fixed` + inset:0
+   removes any chance of scroll/overflow shifting the content off-screen, which is
+   what produced the "zoomed into the top-left corner" symptom on the panel. */
 html, body {
+  position: fixed;
+  inset: 0;
   width: 100%; height: 100%;
   overflow: hidden;
   background: #000;
@@ -46,8 +51,10 @@ html, body {
 
 .board-img {
   display: block;
-  width: 100vw;
-  height: 100vh;
+  /* 100% of the fixed .view-docs layer — never viewport units, so it cannot
+     overflow if the WebView reports an odd viewport size. */
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   object-position: center;
   /* Sub-pixel drift to shift the entire image ±3 px over 10 minutes.
@@ -70,8 +77,9 @@ html, body {
 .view-splash { background: var(--splash-bg); }
 
 .stage {
-  position: relative;
-  width: 100vw; height: 100vh;
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
   overflow: hidden;
 }
 

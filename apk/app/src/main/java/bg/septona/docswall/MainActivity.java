@@ -83,18 +83,28 @@ public class MainActivity extends AppCompatActivity {
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
-        s.setLoadWithOverviewMode(true);
-        s.setUseWideViewPort(true);
+        // The page declares width=device-width, so we must NOT let the WebView
+        // impose its own wide viewport / overview zoom. Both of those combined with
+        // a fixed-width viewport tag are what caused the top-left crop.
+        s.setUseWideViewPort(false);
+        s.setLoadWithOverviewMode(false);
         s.setSupportZoom(false);
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
+        s.setTextZoom(100);                       // ignore any system font-scale setting
+        s.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         WebView.setWebContentsDebuggingEnabled(false);
 
+        web.setInitialScale(100);                 // force 1:1, no auto-fit guessing
         web.setBackgroundColor(0xFF000000);
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
+        web.setScrollBarStyle(android.view.View.SCROLLBARS_INSIDE_OVERLAY);
+        web.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
         web.setLongClickable(false);
         web.setHapticFeedbackEnabled(false);
         web.setOnLongClickListener(v -> true);
