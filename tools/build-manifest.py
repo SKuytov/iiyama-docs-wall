@@ -46,7 +46,51 @@ def sha256(path: Path) -> str:
             h.update(chunk)
     return h.hexdigest()
 
+# --- panel safety guard -------------------------------------------------
+# The panel is 3840x2160. A larger board.jpg shows no extra detail but costs
+# width*height*4 bytes of RAM to decode, which will OOM a signage device and
+# blank the screen. Refuse to build a manifest that would ship one.
+PANEL_MAX_PIXELS = 3840 * 2160
+
+
+def _check_board_size():
+    board = WEB_DIR / "assets" / "board.jpg"
+    if not board.is_file():
+        return
+    try:
+        import struct
+        data = board.read_bytes()
+        i, w, h = 2, None, None
+        while i < len(data) - 9:
+            if data[i] != 0xFF:
+                i += 1
+                continue
+            m = data[i + 1]
+            if m in (0xC0, 0xC1, 0xC2, 0xC3):
+                h, w = struct.unpack(">HH", data[i + 5:i + 9])
+                break
+            if m in (0xD8, 0xD9) or 0xD0 <= m <= 0xD7:
+                i += 2
+                continue
+            i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
+        if not w or not h:
+            return
+    except Exception:
+        return
+    if w * h > PANEL_MAX_PIXELS * 1.05:
+        ram = w * h * 4 // 1_000_000
+        raise SystemExit(
+            f"\n!! REFUSING TO BUILD: web/assets/board.jpg is {w}x{h}.\n"
+            f"   The panel is 3840x2160, so the extra pixels are invisible, but\n"
+            f"   decoding this image needs ~{ram} MB of RAM and will blank a\n"
+            f"   signage panel.\n\n"
+            f"   Fix: move it to docs/board-master-{w}x{h}.jpg and run\n"
+            f"        ./tools/optimize-board.sh\n"
+        )
+
+
 def main() -> int:
+    _check_board_size()
     files = []
     combined = hashlib.sha256()
     for rel, remote in TRACKED:
