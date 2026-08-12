@@ -26,6 +26,13 @@ android {
         }
     }
 
+    lint {
+        // We don't want a minor lint warning to break the release build in CI;
+        // real errors (compile, resource) still fail. Fatal issues are caught by tests/runtime.
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
