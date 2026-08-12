@@ -1,0 +1,184 @@
+/* =========================================================
+   iiyama LH6560UHS-B2AG · 3840 × 2160 signage
+   - Docs view: full-screen master board image
+   - Splash view: crossfading Septona cotton bg + particles + logo + clock
+   - Views crossfade every 15 min (docs) / 30 s (splash)
+   ========================================================= */
+
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --splash-bg: #07102e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  user-select: none;
+}
+
+/* ---------- View system: two full-screen layers, crossfaded ---------- */
+.view {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.6s ease-in-out;
+  z-index: 1;
+}
+.view.is-active {
+  opacity: 1;
+  z-index: 2;
+}
+
+/* =========================================================
+   DOCS VIEW
+   ========================================================= */
+.view-docs {
+  background: #ffffff;
+  display: block;
+}
+
+.board-img {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  object-position: center;
+  /* Sub-pixel drift to shift the entire image ±3 px over 10 minutes.
+     Prevents static pixels from developing burn-in without being noticeable. */
+  animation: pixel-drift 600s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes pixel-drift {
+  0%   { transform: translate(0px,  0px); }
+  25%  { transform: translate(3px,  2px); }
+  50%  { transform: translate(-2px, 3px); }
+  75%  { transform: translate(2px, -3px); }
+  100% { transform: translate(0px,  0px); }
+}
+
+/* =========================================================
+   SPLASH VIEW  (adapted from provided s.html)
+   ========================================================= */
+.view-splash { background: var(--splash-bg); }
+
+.stage {
+  position: relative;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+}
+
+/* Background crossfade */
+.bg-slide {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 2.4s ease-in-out;
+}
+.bg-slide.is-active { opacity: 1; }
+.bg-slide-1 { background-image: url('assets/cotton-bg-2.jpg'); }
+.bg-slide-2 { background-image: url('assets/cotton-bg-1.jpg'); }
+
+/* Vignette overlay */
+.bg-vignette {
+  position: absolute; inset: 0;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse 60% 60% at 50% 50%,
+    rgba(12, 12, 15, 0.30) 0%,
+    rgba(22, 19, 19, 0.21) 100%
+  );
+  pointer-events: none;
+}
+
+/* Floating particles */
+.particles {
+  position: absolute; inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  filter: blur(1px);
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 0.4; }
+  100% { transform: translateY(-110vh) translateX(30px); opacity: 0; }
+}
+
+/* Clock (top-right) */
+.live-clock {
+  position: absolute;
+  top: clamp(24px, 3vh, 60px);
+  right: clamp(32px, 4vw, 80px);
+  z-index: 12;
+  text-align: right;
+  opacity: 0;
+  animation: riseIn 0.9s 0.6s var(--ease-out) forwards;
+}
+.clock-time {
+  font-size: clamp(32px, 3.2vw, 76px);
+  font-weight: 200;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 22px rgba(0,0,0,0.65);
+}
+.clock-date {
+  font-size: clamp(12px, 0.95vw, 22px);
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.5);
+}
+
+/* Centered pulsing logo */
+.logo-center {
+  position: absolute; inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: riseIn 1.2s 0.4s var(--ease-out) forwards;
+}
+.logo-img {
+  width: clamp(360px, 40vw, 1400px);
+  height: auto;
+  filter:
+    drop-shadow(0 0 60px rgba(255, 255, 255, 0.55))
+    drop-shadow(0 4px 20px rgba(255, 255, 255, 0.8));
+  animation: logoPulse 7s 1.6s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 50px rgba(255, 255, 255, 1))
+      drop-shadow(0 4px 20px rgba(255, 255, 255, 0.92));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 80px rgba(255, 255, 255, 0.40))
+      drop-shadow(0 6px 28px rgba(114, 114, 114, 0.65));
+  }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

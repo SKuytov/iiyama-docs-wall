@@ -1,0 +1,46 @@
+{
+  "version": "051ed75716ca",
+  "generatedAt": "2026-08-12T09:22:46+00:00",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "379b7781f532172a6badce2bbd5ccecac05d90478ac69f879894baa47f0274b4",
+      "size": 1679
+    },
+    {
+      "path": "style.css",
+      "sha256": "0480b911379dfeaa81e9e4ac27ff078e3017f07ad625cb1315cccec461516d4a",
+      "size": 4714
+    },
+    {
+      "path": "app.js",
+      "sha256": "75347ef680becc212873b0e74e9f662878aa1b0e4883cb0bef85aad8634745d8",
+      "size": 4280
+    },
+    {
+      "path": "sw.js",
+      "sha256": "8a7818db5ce0200575cc2f4bc15260c5ffc6742cad9a38b5a0ef4cb1351d9f4b",
+      "size": 1656
+    },
+    {
+      "path": "assets/board.jpg",
+      "sha256": "0aa90630b767ca4a4291b418b5682010f2a615b9948276aa068a759da6a8d64e",
+      "size": 2221220
+    },
+    {
+      "path": "assets/cotton-bg-1.jpg",
+      "sha256": "aae3b547f57ae366af95a495b91d3746aa20f0f98c13c52252abb2df5af1fb5c",
+      "size": 182972
+    },
+    {
+      "path": "assets/cotton-bg-2.jpg",
+      "sha256": "25437ec0612199206513962651cfe5194f0ebdc1a6ab33adff5318cd887b8428",
+      "size": 150552
+    },
+    {
+      "path": "assets/septona-logo.png",
+      "sha256": "4d5a7c6e1448c1dfaccfca0f50176a3852eb63c10b5a19a51c8d5c5187839160",
+      "size": 321630
+    }
+  ]
+}

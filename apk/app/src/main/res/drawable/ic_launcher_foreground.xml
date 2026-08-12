@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- White "S" glyph roughly matching the Septona wordmark first letter. Centered in the 108x108 safe zone. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65.5,42
+          C63.5,38 58,36 53,36
+          C46,36 42,39.5 42,45
+          C42,50 46,52 55,54
+          C68,57 73,61 73,70
+          C73,79 65,84 54,84
+          C46,84 40,81 36,74
+          L43,70
+          C46,74 49,76 54,76
+          C60,76 64,73 64,68
+          C64,63 60,61 51,59
+          C40,57 34,52 34,44
+          C34,35 42,29 53,29
+          C61,29 68,32 72,38
+          Z" />
+</vector>

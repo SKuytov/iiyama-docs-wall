@@ -11,6 +11,9 @@ apk/**/*.iml
 apk/.idea/
 *.apk
 *.aab
+# The bundled offline snapshot is generated at build time by CI (or by rebuild-bundle.sh).
+# We keep a checked-in copy so local builds work without extra steps, but the CI always overwrites it.
+!apk/app/src/main/assets/web/**
 
 # OS
 .DS_Store
