@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Wall</string>
+    <!--
+      Change this to your deployed URL. GitHub Pages default:
+      https://<user>.github.io/iiyama-docs-wall/web/
+    -->
+    <string name="signage_url">https://skuytov.github.io/iiyama-docs-wall/web/</string>
+</resources>
