@@ -12,7 +12,10 @@ android {
         versionName "2.0.0"
 
         // Baked-in fallback URL. Overridden by BuildConfig field so CI can inject a different origin.
-        buildConfigField "String", "SIGNAGE_ORIGIN", "\"https://skuytov.github.io/iiyama-docs-wall/web\""
+        // Where the panel will look for updates. Uploads to this folder
+        // (1.html, style.css, app.js, sw.js, assets/…, manifest.json) will
+        // be auto-fetched, hash-verified, and applied on the panel.
+        buildConfigField "String", "SIGNAGE_ORIGIN", "\"https://skuytov.eu/ii\""
     }
 
     buildFeatures { buildConfig true }

@@ -5,5 +5,5 @@
       Change this to your deployed URL. GitHub Pages default:
       https://<user>.github.io/iiyama-docs-wall/web/
     -->
-    <string name="signage_url">https://skuytov.github.io/iiyama-docs-wall/web/</string>
+    <string name="signage_url">https://skuytov.eu/ii/</string>
 </resources>

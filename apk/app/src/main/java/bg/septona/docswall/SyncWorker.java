@@ -23,7 +23,8 @@ import java.security.MessageDigest;
  * 1. GET  {SIGNAGE_ORIGIN}/manifest.json
  * 2. Compare `version` with locally stored one.
  * 3. If different, for each entry whose sha256 differs from the on-disk file:
- *       download {SIGNAGE_ORIGIN}/<path>  → write atomically.
+ *       download {SIGNAGE_ORIGIN}/<remote>  → write atomically to <path>.
+ *       (`remote` defaults to `path` when not present in the manifest entry.)
  * 4. Save new manifest + version.
  * 5. Nudge MainActivity to reload.
  *
@@ -63,26 +64,28 @@ public class SyncWorker extends Worker {
             int changed = 0;
             for (int i = 0; i < files.length(); i++) {
                 JSONObject f = files.getJSONObject(i);
-                String relPath = f.getString("path");
-                String wantSha = f.getString("sha256");
-                File   local   = ContentStore.file(ctx, relPath);
+                String relPath  = f.getString("path");
+                String remoteNm = f.optString("remote", relPath);   // default: same as local path
+                String wantSha  = f.getString("sha256");
+                File   local    = ContentStore.file(ctx, relPath);
 
                 String haveSha = local.exists() ? sha256(local) : "";
                 if (wantSha.equalsIgnoreCase(haveSha)) continue;
 
-                byte[] body = httpGet(origin + "/" + relPath);
+                String remoteUrl = origin + "/" + remoteNm;
+                byte[] body = httpGet(remoteUrl);
                 if (body == null) {
-                    Log.w(TAG, "Download failed: " + relPath + " — keeping previous copy");
+                    Log.w(TAG, "Download failed: " + remoteUrl + " — keeping previous copy");
                     return Result.retry();
                 }
                 String gotSha = sha256(body);
                 if (!wantSha.equalsIgnoreCase(gotSha)) {
-                    Log.w(TAG, "Checksum mismatch on " + relPath + " — keeping previous copy");
+                    Log.w(TAG, "Checksum mismatch on " + remoteUrl + " — keeping previous copy");
                     return Result.retry();
                 }
                 ContentStore.writeAtomic(ctx, relPath, body);
                 changed++;
-                Log.i(TAG, "✓ " + relPath + " (" + body.length + " B)");
+                Log.i(TAG, "✓ " + remoteNm + " → " + relPath + " (" + body.length + " B)");
             }
 
             // Persist the new manifest last (so a mid-sync crash re-tries next time)

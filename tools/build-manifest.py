@@ -24,15 +24,19 @@ from pathlib import Path
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
+# Each entry: (local_path, remote_name_on_server)
+# The remote_name is what will be appended to SIGNAGE_ORIGIN when downloading.
+# `1.html` is the entry page on skuytov.eu/ii/, but stored locally as index.html
+# so the WebView can just load file://.../web/index.html.
 TRACKED = [
-    "index.html",
-    "style.css",
-    "app.js",
-    "sw.js",
-    "assets/board.jpg",
-    "assets/cotton-bg-1.jpg",
-    "assets/cotton-bg-2.jpg",
-    "assets/septona-logo.png",
+    ("index.html",              "1.html"),
+    ("style.css",               "style.css"),
+    ("app.js",                  "app.js"),
+    ("sw.js",                   "sw.js"),
+    ("assets/board.jpg",        "assets/board.jpg"),
+    ("assets/cotton-bg-1.jpg",  "assets/cotton-bg-1.jpg"),
+    ("assets/cotton-bg-2.jpg",  "assets/cotton-bg-2.jpg"),
+    ("assets/septona-logo.png", "assets/septona-logo.png"),
 ]
 
 def sha256(path: Path) -> str:
@@ -45,14 +49,17 @@ def sha256(path: Path) -> str:
 def main() -> int:
     files = []
     combined = hashlib.sha256()
-    for rel in TRACKED:
+    for rel, remote in TRACKED:
         p = WEB_DIR / rel
         if not p.is_file():
             print(f"! missing: {rel}", file=sys.stderr)
             return 1
         digest = sha256(p)
         size = p.stat().st_size
-        files.append({"path": rel, "sha256": digest, "size": size})
+        entry = {"path": rel, "sha256": digest, "size": size}
+        if remote != rel:
+            entry["remote"] = remote
+        files.append(entry)
         combined.update(rel.encode())
         combined.update(digest.encode())
 

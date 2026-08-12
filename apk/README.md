@@ -12,11 +12,13 @@ A self-healing WebView kiosk for the **iiyama LH6560UHS-B2AG** signage panel.
 
 ### 2 · Silent background sync
 - A `WorkManager` job runs every **6 hours** (only when the network is up).
-- It downloads `https://skuytov.github.io/iiyama-docs-wall/web/manifest.json`.
-- The manifest lists every file with a SHA-256 hash and an overall `version`.
+- It downloads `https://skuytov.eu/ii/manifest.json`.
+- The manifest lists every file with its **local path** (what the WebView loads), the **remote name** on the server (defaults to the local path), a SHA-256 hash, and an overall `version`.
 - If the version changed, it downloads only the files whose hash changed, verifies each SHA-256, writes them atomically (`.part` → `rename`), and finally saves the manifest.
 - Then it broadcasts `RELOAD` → the WebView reloads the new content.
 - If any download or checksum fails, the previous snapshot is left untouched → the screen keeps working.
+
+> Note: the entry page is `1.html` on the server but `index.html` on the panel. The manifest's `remote` field handles this mapping.
 
 ### 3 · Watchdog + self-healing
 - `MainActivity` writes a heartbeat every 60 s.
@@ -63,10 +65,34 @@ If you host the web app somewhere other than GitHub Pages:
 ```groovy
 // apk/app/build.gradle
 buildConfigField "String", "SIGNAGE_ORIGIN",
-        "\"https://my-server.example/signage/web\""
+        "\"https://my-server.example/signage\""
 ```
 
 The bundled snapshot still runs offline; only the sync target changes.
+
+## Updating the content on the server
+
+Upload these files to `https://skuytov.eu/ii/`:
+
+| Local path on panel     | File on server            |
+| ----------------------- | ------------------------- |
+| `index.html`            | **`1.html`**              |
+| `style.css`             | `style.css`               |
+| `app.js`                | `app.js`                  |
+| `sw.js`                 | `sw.js`                   |
+| `assets/board.jpg`      | `assets/board.jpg`        |
+| `assets/cotton-bg-1.jpg`| `assets/cotton-bg-1.jpg`  |
+| `assets/cotton-bg-2.jpg`| `assets/cotton-bg-2.jpg`  |
+| `assets/septona-logo.png`| `assets/septona-logo.png`|
+| `manifest.json`         | `manifest.json`           |
+
+When you change any file, regenerate the manifest so the panels pick it up:
+
+```bash
+python3 tools/build-manifest.py
+```
+
+Then upload the changed files **and** `manifest.json` to `https://skuytov.eu/ii/`. Within 6 hours (or immediately after the panel reboots) every panel will fetch, verify, and apply the update on its own.
 
 ## Signing for production
 
