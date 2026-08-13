@@ -50,6 +50,40 @@
     splashView.setAttribute('aria-hidden', String(showDocs));
   }
 
+  // -------- Burn-in drift (whole-pixel, layout-based) --------
+  //   Static pixels are what burn a panel in, so the board shifts slightly
+  //   every few minutes. This used to be a CSS `transform: translate()`
+  //   animation, and that was the cause of the residual text blur: a
+  //   transformed element becomes its own composited layer, and a fractional
+  //   translate makes the compositor RESAMPLE that layer — every glyph in it
+  //   is smeared across pixel boundaries.
+  //
+  //   Instead the offset is applied as whole-pixel padding. Padding forces a
+  //   real reflow, so glyphs are re-laid-out and re-rasterised at integer
+  //   positions on the panel's pixel grid: pin-sharp at every drift step.
+  //   Cost is a layout pass once every few minutes, which is free here.
+  const DRIFT_MS   = 4 * 60 * 1000;
+  const DRIFT_STEP = 6;               // px of travel — invisible, still effective
+  const DRIFT_SEQ  = [[0, 0], [DRIFT_STEP, 0], [DRIFT_STEP, DRIFT_STEP], [0, DRIFT_STEP],
+                      [-DRIFT_STEP, DRIFT_STEP], [-DRIFT_STEP, 0], [-DRIFT_STEP, -DRIFT_STEP],
+                      [0, -DRIFT_STEP], [DRIFT_STEP, -DRIFT_STEP]];
+  let driftIdx = 0;
+  let driftNow = [0, 0];
+  function applyDrift() {
+    const bd = document.getElementById('board');
+    if (!bd) return;
+    const d = DRIFT_SEQ[driftIdx % DRIFT_SEQ.length];
+    driftNow = d;
+    // Whole integers only. Adjust opposite edges so the board keeps its size.
+    bd.style.paddingLeft   = 'calc(2.4rem + ' + d[0] + 'px)';
+    bd.style.paddingRight  = 'calc(2.4rem - ' + d[0] + 'px)';
+    bd.style.paddingTop    = 'calc(2rem + '   + d[1] + 'px)';
+    bd.style.paddingBottom = 'calc(1.8rem - ' + d[1] + 'px)';
+    driftIdx++;
+  }
+  applyDrift();
+  setInterval(applyDrift, DRIFT_MS);
+
   let mode = 'docs';
   function cycle() {
     mode = mode === 'docs' ? 'splash' : 'docs';
@@ -151,6 +185,9 @@
         'board rendered : ' + (bd ? Math.round(bd.getBoundingClientRect().width) +
                                 ' x ' + Math.round(bd.getBoundingClientRect().height) : 'n/a') + '\n' +
         'fonts loaded   : ' + (document.fonts ? document.fonts.status : 'n/a') + '\n' +
+        'burn-in drift  : ' + driftNow[0] + ', ' + driftNow[1] + ' px\n' +
+        'content.js     : ' + (window.BOARD ? 'loaded (' + (window.BOARD.rules ?
+                                window.BOARD.rules.items.length : '?') + ' rules)' : 'MISSING') + '\n' +
         'protocol       : ' + location.protocol + '\n' +
         'apk sync       : ' + apkStatus();
     };

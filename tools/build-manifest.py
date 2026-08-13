@@ -31,6 +31,8 @@ WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 TRACKED = [
     ("index.html",              "1.html"),
     ("style.css",               "style.css"),
+    ("content.js",              "content.js"),
+    ("render.js",               "render.js"),
     ("app.js",                  "app.js"),
     ("sw.js",                   "sw.js"),
     ("assets/cotton-bg-1.jpg",  "assets/cotton-bg-1.jpg"),

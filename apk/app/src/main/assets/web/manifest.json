@@ -1,27 +1,37 @@
 {
-  "version": "e77bb3cc1583",
-  "generatedAt": "2026-08-12T11:22:16+00:00",
+  "version": "bcb51b71ae4a",
+  "generatedAt": "2026-08-13T06:34:40+00:00",
   "files": [
     {
       "path": "index.html",
-      "sha256": "1c5248b401249828bc619788572329544e2e9449c2888a5fc77829923a44ccf1",
-      "size": 26676,
+      "sha256": "641013e22f9e177d9f57678bc8a9befc7e17fa5766987259cbf31924bd1be3c3",
+      "size": 9347,
       "remote": "1.html"
     },
     {
       "path": "style.css",
-      "sha256": "325dc7d378edee325d2a4277664258497c47e44516046fce2de5530508f21738",
-      "size": 20218
+      "sha256": "98b076b73e0ce98ec4885ea8b9509431950f97c95b06c584bb65ac223fe66d52",
+      "size": 22238
+    },
+    {
+      "path": "content.js",
+      "sha256": "14c7d5830ffe558eeecfde3aa232ea88f090edda464059ff1068371abf30dbdf",
+      "size": 26123
+    },
+    {
+      "path": "render.js",
+      "sha256": "e2bd040915a467fd73d4d8627d007c6397fb2df35faa27607c921986627bfce2",
+      "size": 11776
     },
     {
       "path": "app.js",
-      "sha256": "e79db3da58a994e9195cddcc5ff1efc712aa89930d54c5d75453291ffa506fe6",
-      "size": 7907
+      "sha256": "5a41fae249d7f1f40e5bd258491c7dd3e717beba15780c315d68be93d29fffe7",
+      "size": 9947
     },
     {
       "path": "sw.js",
-      "sha256": "bc196eb2adc2dcad3434a19b3a1edeca2b07cee1bd7b1f362ec68c62d567293c",
-      "size": 2525
+      "sha256": "86cb93a8b73c91f1d97aff883f69db8dfb5aba48b99c295de6075747f000dd54",
+      "size": 2556
     },
     {
       "path": "assets/cotton-bg-1.jpg",

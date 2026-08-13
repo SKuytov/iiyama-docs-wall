@@ -2,7 +2,7 @@
  * Cache-first for shell + assets, network-first for manifest.json
  * so the browser version keeps working when the network dies.
  */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `iiyama-docs-wall-${VERSION}`;
 
 const PRECACHE = [
@@ -10,6 +10,8 @@ const PRECACHE = [
   'index.html', // dev/GitHub Pages name
   '1.html',     // production name at skuytov.eu/ii/
   'style.css',
+  'content.js',
+  'render.js',
   'app.js',
   'assets/cotton-bg-1.jpg',
   'assets/cotton-bg-2.jpg',
