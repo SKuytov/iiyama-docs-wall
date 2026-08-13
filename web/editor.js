@@ -230,7 +230,10 @@
     const inp = document.createElement(isArea ? 'textarea' : 'input');
     if (!isArea) inp.type = 'text';
     inp.value = obj[field.key] != null ? obj[field.key] : '';
-    inp.oninput = () => { obj[field.key] = inp.value; touched(); };
+    // A table cell is narrower than most of its content, so keep the full value
+    // available on hover as well as on focus.
+    inp.title = inp.value;
+    inp.oninput = () => { obj[field.key] = inp.value; inp.title = inp.value; touched(); };
     return inp;
   }
 

@@ -86,7 +86,7 @@ body {
 
 /* ---------- Layout ---------- */
 .wrap {
-  display: grid; grid-template-columns: 232px minmax(0, 1fr) 1fr;
+  display: grid; grid-template-columns: 214px minmax(0, 1.9fr) minmax(360px, 1fr);
   gap: 20px; padding: 20px; align-items: start;
   max-width: 2100px; margin: 0 auto;
 }
@@ -223,3 +223,13 @@ dialog::backdrop { background: rgba(12,20,40,.45); }
 .file-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; }
 .file-row b { flex: 1; font-weight: 600; }
 .file-row .ok { color: var(--e-ok); font-weight: 600; }
+
+/* An input in a table row is narrower than its content by nature. Focusing one
+   lifts it above the grid and expands it, so long entries can be read and
+   edited in full instead of being scrolled through a 150px window. */
+.row input[type="text"]:focus,
+.row textarea:focus {
+  position: relative; z-index: 4;
+  min-width: 100%; width: max-content; max-width: 620px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, .14), 0 0 0 3px rgba(16, 124, 192, .18);
+}
