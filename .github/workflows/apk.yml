@@ -29,14 +29,19 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Rebuild web/manifest.json (fresh hashes)
-        run: python3 tools/build-manifest.py
+      # Use the same script developers run locally, so CI and a local build
+      # produce byte-identical assets. It refreshes manifest.json and strips
+      # the staff-facing editor, which has no business inside the APK.
+      - name: Bundle web/ into APK assets
+        run: ./tools/rebuild-bundle.sh
 
-      - name: Copy web/ into APK assets
+      - name: Verify the editor is not bundled
         run: |
-          rm -rf apk/app/src/main/assets/web
-          mkdir -p apk/app/src/main/assets/web
-          cp -R web/. apk/app/src/main/assets/web/
+          if ls apk/app/src/main/assets/web/editor.* \
+                apk/app/src/main/assets/web/save.php >/dev/null 2>&1; then
+            echo "::error::editor files leaked into the APK assets"; exit 1
+          fi
+          echo "✓ editor excluded"
 
       - name: Cache Gradle
         uses: actions/cache@v4
