@@ -13,4 +13,10 @@ rm -rf "$dst"
 mkdir -p "$dst"
 cp -R "$here/web/." "$dst/"
 
+# The content editor is a desk tool for a PC browser. It is deliberately NOT
+# bundled into the APK and NOT listed in the manifest, so it never bloats the
+# panel's download or its offline cache.
+rm -f "$dst"/editor.html "$dst"/editor.js "$dst"/editor-schema.js \
+      "$dst"/editor.css "$dst"/save.php
+
 echo "✓ bundled snapshot rebuilt at $dst"

@@ -81,26 +81,68 @@ Together this drops the effective duty cycle of any static pixel to well below t
 
 ## Update the board
 
-Edit the markup directly — the board is HTML now.
+### The easy way — the visual editor
 
-1. Edit [`web/index.html`](web/index.html) (content) and/or
-   [`web/style.css`](web/style.css) (layout).
-2. Verify at true panel resolution before shipping. Anything that overflows a
-   card is a bug you will only see at 4K:
+Open **[`web/editor.html`](web/editor.html)** in any browser
+(`https://skuytov.eu/ii/editor.html` in production). No build step, no code, no
+internet needed — it also runs from a USB stick over `file://`.
+
+- Form fields for all 11 sections, labelled in Bulgarian, with add / delete /
+  reorder for every list.
+- **Live preview of the real board** in an iframe at true 3840×2160 — not a
+  mock-up, so what fits there is what fits on the panel.
+- **Overflow warning** after each keystroke, naming the section and by how many
+  pixels it overflows. This is the check that used to require a 4K screenshot.
+- Emits `content.js` **and a correctly recomputed `manifest.json`**, so the
+  panel actually notices the change. Draft is autosaved to `localStorage`.
+- Optional one-click publish via [`web/save.php`](web/save.php) (password, two
+  fixed filenames, atomic writes, keeps 20 backups). Not uploading `save.php`
+  simply disables that button.
+
+The output is produced with `JSON.stringify`, so the editor cannot emit a
+syntactically broken file — a mistake can only ever be the wrong words.
+
+Two implementation notes, both forced by `file://` not being a secure context:
+SHA-256 is implemented in `editor.js` rather than using `crypto.subtle`
+(undefined off-origin), and `manifest.json` is loaded through a file picker when
+`fetch()` is blocked.
+
+The editor is deliberately **not** in `TRACKED` in `tools/build-manifest.py`,
+not in `sw.js`'s precache list, and stripped out by `tools/rebuild-bundle.sh` —
+it must never bloat the panel's sync or the APK.
+
+### The manual way — editing content.js
+
+All board text lives in [`web/content.js`](web/content.js) (`window.BOARD`),
+commented section by section in Bulgarian and English. Layout lives in
+[`web/style.css`](web/style.css); [`web/render.js`](web/render.js) draws the DOM
+from the data.
+
+1. Edit `web/content.js`.
+2. Verify at true panel resolution — anything that overflows a card is a bug you
+   will only see at 4K:
    ```bash
    cd web && python3 -m http.server 8899
    # then screenshot at 3840x2160, device_scale_factor=1
    ```
+   (Or just watch the editor's overflow warning, which measures the same thing.)
 3. Regenerate the manifest and the APK's bundled copy:
    ```bash
    ./tools/rebuild-bundle.sh
    ```
 4. `git commit && git push`.
 
-**Deploying to production (`skuytov.eu/ii`):** upload the changed content files
-first and `manifest.json` **last** — the APK treats the manifest as the commit
-point, so uploading it early makes the panel fetch files that are not there yet.
-Panels poll every 5 minutes and apply the change atomically.
+### Deploying to production (`skuytov.eu/ii`)
+
+```bash
+./tools/make-upload-zip.sh          # → skuytov.eu-ii-upload.zip
+```
+
+Renames `index.html` → `1.html` from the manifest's `remote` field, so the repo
+and the server cannot drift. Upload the changed content files first and
+`manifest.json` **last** — the APK treats the manifest as the commit point, so
+uploading it early makes the panel fetch files that are not there yet. Panels
+poll every 5 minutes and apply the change atomically.
 
 ## Run in an Android APK (kiosk mode)
 
@@ -116,10 +158,17 @@ adb install app/build/outputs/apk/release/app-release.apk
 ```
 iiyama-docs-wall/
 ├── web/
-│   ├── index.html
+│   ├── index.html               ← shell + SVG sprite (served as 1.html)
+│   ├── content.js               ← ALL BOARD TEXT (window.BOARD)
+│   ├── render.js                ← builds the DOM from content.js
 │   ├── style.css
 │   ├── app.js
 │   ├── sw.js                    ← offline service worker (browser path)
+│   ├── editor.html              ← visual content editor (staff-facing)
+│   ├── editor.css
+│   ├── editor.js                ← form, live preview, SHA-256, serialiser
+│   ├── editor-schema.js         ← which fields exist in which section
+│   ├── save.php                 ← optional one-click publish endpoint
 │   └── assets/
 │       ├── fonts/               ← subset woff2 (Golos Text + Inter), bundled
 │       ├── cotton-bg-1.jpg      ← splash background A
@@ -129,7 +178,8 @@ iiyama-docs-wall/
 ├── apk/                         ← Android WebView kiosk (offline-first)
 ├── tools/
 │   ├── build-manifest.py        ← hashes tracked files → web/manifest.json
-│   └── rebuild-bundle.sh        ← manifest + refresh the APK's bundled copy
+│   ├── rebuild-bundle.sh        ← manifest + refresh the APK's bundled copy
+│   └── make-upload-zip.sh       ← build the skuytov.eu/ii upload archive
 └── .github/workflows/
     ├── pages.yml                ← auto-deploy on push
     └── apk.yml                  ← build + release the signed APK

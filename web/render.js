@@ -308,8 +308,8 @@
   // ======================================================================
   //  Assemble
   // ======================================================================
-  function build() {
-    const B = window.BOARD;
+  function build(override) {
+    const B = override || window.BOARD;
     if (!B) throw new Error('content.js did not load — window.BOARD is undefined');
 
     const board = el('div.board', { id: 'board' }, [
@@ -332,6 +332,84 @@
     host.innerHTML = '';
     host.appendChild(board);
   }
+
+  // ======================================================================
+  //  Public hook — used by editor.html for the live preview
+  // ======================================================================
+  //  The editor renders the real board in an iframe and re-renders it on every
+  //  keystroke, so the person editing sees the actual panel output rather than
+  //  a mock-up. It also asks for an overflow report, which is what turns "looks
+  //  fine on my laptop" into "this will still fit on the 65-inch panel".
+  window.BoardRender = {
+    render: build,
+    // Anything whose content is taller than its box would be clipped on the
+    // panel. Report it by human-readable card name so a non-technical editor
+    // gets "Вътрешни инспекции: текстът не се побира" and not a CSS selector.
+    report: function () {
+      const NAMES = {
+        'card-rules': 'Правила за шофьори',
+        'card-dir': 'Служебни телефони',
+        'card-insp': 'Вътрешни инспекции',
+        'card-train': 'Програма за обучение',
+        'card-clean': 'Почистване и дезинфекция',
+        'card-waste': 'Отпадъци',
+        'card-kut': 'Комитет по условия на труд',
+        'card-fire': 'Сертификати пожарна безопасност',
+      };
+      const worst = {};   // label -> px, keeping the largest per card
+      function note(cardEl, over) {
+        let label = null;
+        for (const k in NAMES) if (cardEl.classList.contains(k)) label = NAMES[k];
+        label = label || 'Таблото';
+        if (!worst[label] || worst[label] < over) worst[label] = over;
+      }
+
+      // Attribute the problem to the specific card at fault, never to the
+      // container. A stack reporting 155px over tells the editor nothing; "the
+      // cleaning schedule is 155px too tall" tells them exactly what to trim.
+      document.querySelectorAll('.card').forEach(function (card) {
+        // (a) the card's own content is taller than the card
+        const inner = card.scrollHeight - card.clientHeight;
+        if (inner > 2) note(card, inner);
+
+        // (b) the card is taller than the column it sits in, so it spills past
+        //     the bottom of the band and over whatever is underneath
+        const holder = card.closest('.stack') || card.closest('.band') || card.closest('.pband');
+        if (holder) {
+          const spill = card.getBoundingClientRect().bottom - holder.getBoundingClientRect().bottom;
+          if (spill > 2) note(card, spill);
+        }
+      });
+
+      // Finally, the board as a whole must not exceed the panel.
+      const bd = document.getElementById('board');
+      if (bd && bd.scrollHeight - bd.clientHeight > 2) {
+        const over = bd.scrollHeight - bd.clientHeight;
+        if (!Object.keys(worst).length) worst['Таблото'] = over;
+      }
+
+      const out = [];
+      for (const k in worst) out.push({ label: k, over: worst[k] });
+      out.sort(function (a, b) { return b.over - a.over; });
+      return out;
+    },
+  };
+
+  // Live preview channel. Only same-origin editor pages talk to this.
+  window.addEventListener('message', function (ev) {
+    if (!ev.data || ev.data.type !== 'board:preview') return;
+    try {
+      build(ev.data.board);
+      // Layout settles after fonts/reflow; measure on the next frame.
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          ev.source.postMessage({ type: 'board:report', problems: window.BoardRender.report() }, '*');
+        });
+      });
+    } catch (err) {
+      ev.source.postMessage({ type: 'board:error', message: String(err && err.message || err) }, '*');
+    }
+  });
 
   // A content typo must not leave a blank panel in a factory corridor. Show
   // exactly what broke, on screen, in a form somebody can act on.
